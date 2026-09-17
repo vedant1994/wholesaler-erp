@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expiry Alerts</title>
+</head>
+
+<body>
+
+<h1>Expiry Alerts</h1>
+
+<a href="{% url 'add_stock' %}">Add New Stock</a>
+|
+<a href="{% url 'stock_list' %}">Back to Stock</a>
+
+<br><br>
+
+{% if stocks %}
+
+<table border="1" cellpadding="10">
+
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Batch Number</th>
+            <th>Quantity</th>
+            <th>Expiry Date</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for stock in stocks %}
+
+        <tr>
+
+            <td>
+                {{ stock.product.name }}
+            </td>
+
+            <td>
+                {{ stock.product.sku }}
+            </td>
+
+            <td>
+                {{ stock.batch_number }}
+            </td>
+
+            <td>
+                {{ stock.quantity }}
+            </td>
+
+            <td>
+                {{ stock.expiry_date }}
+            </td>
+
+            <td>
+                {{ stock.expiry_status }}
+            </td>
+
+            <td>
+                <a href="{% url 'edit_stock' stock.id %}">
+                    Update Stock
+                </a>
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<p>No expired or soon-to-expire stock found.</p>
+
+{% endif %}
+
+<br>
+
+<a href="{% url 'dashboard' %}">
+    Back to Dashboard
+</a>
+
+</body>
+</html>

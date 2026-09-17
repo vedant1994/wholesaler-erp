@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Low Stock</title>
+</head>
+
+<body>
+
+<h1>Low Stock Products</h1>
+
+<a href="{% url 'add_stock' %}">
+    Add New Stock
+</a>
+
+<br><br>
+
+{% if low_stocks %}
+
+<table border="1" cellpadding="10">
+
+    <thead>
+
+        <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Current Quantity</th>
+            <th>Minimum Stock</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for stock in low_stocks %}
+
+        <tr>
+
+            <td>
+                {{ stock.product.name }}
+            </td>
+
+            <td>
+                {{ stock.product.sku }}
+            </td>
+
+            <td>
+                {{ stock.quantity }}
+            </td>
+
+            <td>
+                {{ stock.minimum_stock }}
+            </td>
+
+            <td>
+                LOW STOCK
+            </td>
+
+            <td>
+                <a href="{% url 'edit_stock' stock.id %}">
+                    Update Stock
+                </a>
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<p>
+    All products have sufficient stock.
+</p>
+
+{% endif %}
+
+<br>
+
+<a href="{% url 'stock_list' %}">
+    Back to Stock
+</a>
+
+<br><br>
+
+<a href="{% url 'dashboard' %}">
+    Back to Dashboard
+</a>
+
+</body>
+
+</html>

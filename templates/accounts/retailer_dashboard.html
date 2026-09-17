@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Retailer Dashboard</title>
+</head>
+
+<body>
+
+    <h1>Retailer Dashboard</h1>
+
+    <h2>
+        Welcome, {{ retailer.shop_name }}
+    </h2>
+
+    <p>
+        Owner: {{ retailer.owner_name }}
+    </p>
+
+    <p>
+        Phone: {{ retailer.phone }}
+    </p>
+
+    <p>
+        City: {{ retailer.city }}
+    </p>
+
+    <p>
+        GST: {{ retailer.gst_number }}
+    </p>
+
+    <hr>
+
+    <h3>Retailer Features</h3>
+
+    <ul>
+        <li>My Wholesalers</li>
+        <li>Browse Products</li>
+        <li>Place Orders</li>
+        <li>My Orders</li>
+        <li>My Stock</li>
+        <li>Invoices</li>
+        <li>Payments</li>
+        <li>Shipments</li>
+        <li>Customers</li>
+    </ul>
+
+    <a href="{% url 'logout' %}">
+        Logout
+    </a>
+
+</body>
+
+</html>

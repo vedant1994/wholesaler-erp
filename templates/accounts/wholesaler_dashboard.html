@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Wholesaler Dashboard</title>
+</head>
+
+<body>
+
+    <h1>Wholesaler Dashboard</h1>
+
+    <h2>
+        Welcome, {{ wholesaler.business_name }}
+    </h2>
+
+    <p>
+        Phone: {{ wholesaler.phone }}
+    </p>
+
+    <p>
+        City: {{ wholesaler.city }}
+    </p>
+
+    <p>
+        GST: {{ wholesaler.gst_number }}
+    </p>
+
+    <hr>
+
+    <h3>Wholesaler Features</h3>
+
+    <ul>
+        <li>Manage Retailers</li>
+        <li>Manage Products</li>
+        <li>Manage Stock</li>
+        <li>Manage Orders</li>
+        <li>Manage Invoices</li>
+        <li>Manage Payments</li>
+        <li>Manage Shipments</li>
+    </ul>
+
+    <a href="{% url 'logout' %}">
+        Logout
+    </a>
+
+</body>
+
+</html>

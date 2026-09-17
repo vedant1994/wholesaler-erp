@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Stock</title>
+</head>
+
+<body>
+
+<h1>My Stock</h1>
+
+<a href="{% url 'add_stock' %}">
+    Add New Stock
+</a>
+|
+<a href="{% url 'low_stock_list' %}">
+    View Low Stock
+</a>
+|
+<a href="{% url 'expiry_list' %}">
+    View Expiry Alerts
+</a>
+
+<br><br>
+
+<form method="GET">
+
+    <input
+        type="text"
+        name="search"
+        placeholder="Search product or SKU"
+        value="{{ search }}"
+    >
+
+    <select name="category">
+
+        <option value="">
+            All Categories
+        </option>
+
+        {% for category in categories %}
+
+            <option
+                value="{{ category }}"
+                {% if selected_category == category %}selected{% endif %}
+            >
+                {{ category }}
+            </option>
+
+        {% endfor %}
+
+    </select>
+
+    <select name="stock_status">
+
+        <option value="">
+            All Stock
+        </option>
+
+        <option
+            value="low"
+            {% if selected_stock_status == "low" %}selected{% endif %}
+        >
+            Low Stock
+        </option>
+
+        <option
+            value="in_stock"
+            {% if selected_stock_status == "in_stock" %}selected{% endif %}
+        >
+            In Stock
+        </option>
+
+    </select>
+
+    <select name="expiry_status">
+
+        <option value="">
+            All 
+        </option>
+
+        <option
+            value="expired"
+            {% if selected_expiry_status == "expired" %}selected{% endif %}
+        >
+            Expired
+        </option>
+
+        <option
+            value="soon_expiring"
+            {% if selected_expiry_status == "soon_expiring" %}selected{% endif %}
+        >
+            Soon Expiring
+        </option>
+
+        <option
+            value="good"
+            {% if selected_expiry_status == "good" %}selected{% endif %}
+        >
+            Good
+        </option>
+
+    </select>
+
+    <button type="submit">
+        Search / Filter
+    </button>
+
+    <a href="{% url 'stock_list' %}">
+        Clear
+    </a>
+
+</form>
+
+<br>
+
+<br><br>
+
+{% if stocks %}
+
+<table border="1" cellpadding="10">
+
+    <thead>
+
+        <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Category</th>
+            <th>Quantity</th>
+            <th>Purchase Price</th>
+            <th>Selling Price</th>
+            <th>MRP</th>
+            <th>Supplier</th>
+            <th>Batch Number</th>
+            <th>Expiry Date</th>
+            <th>Minimum Stock</th>
+            <th>Expiry Status</th>
+            <th>Stock Alert</th>
+            <th>Action</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for stock in stocks %}
+
+        <tr>
+
+            <td>
+                {{ stock.product.name }}
+            </td>
+
+            <td>
+                {{ stock.product.sku }}
+            </td>
+
+            <td>
+                {{ stock.product.category }}
+            </td>
+
+            <td>
+                {{ stock.quantity }}
+            </td>
+
+            <td>
+                ₹{{ stock.purchase_price }}
+            </td>
+
+            <td>
+                ₹{{ stock.selling_price }}
+            </td>
+
+            <td>
+                ₹{{ stock.mrp }}
+            </td>
+
+            <td>
+                {{ stock.supplier }}
+            </td>
+
+            <td>
+                {{ stock.batch_number }}
+            </td>
+
+            <td>
+                {{ stock.expiry_date }}
+            </td>
+
+            <td>
+                {{ stock.minimum_stock }}
+            </td>
+
+            <td>
+                {% if stock.expiry_status == "EXPIRED" %}
+                    <strong>EXPIRED</strong>
+
+                {% elif stock.expiry_status == "SOON EXPIRING" %}
+                    <strong>SOON EXPIRING</strong>
+
+                {% elif stock.expiry_status == "NO EXPIRY DATE" %}
+                    <strong> EXPIRY DATE</strong>
+
+                {% else %}
+                    <strong>GOOD</strong>
+                {% endif %}
+            </td>
+            
+            <td>
+                {% if stock.is_low_stock %}
+                    <strong>LOW STOCK</strong>
+                {% else %}
+                    <strong>In Stock</strong>
+                {% endif %}
+            </td>
+
+            <td>
+                <a href="{% url 'edit_stock' stock.id %}">Edit</a>
+                |
+                <a href="{% url 'delete_stock' stock.id %}">Delete</a>
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% else %}
+
+<p>
+    You have not added any stock yet.
+</p>
+
+{% endif %}
+
+<br>
+
+<a href="{% url 'product_list' %}">
+    Back to Products
+</a>
+
+<br><br>
+
+<a href="{% url 'dashboard' %}">
+    Back to Dashboard
+</a>
+
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Stock</title>
+</head>
+<body>
+
+<h1>Edit Product</h1>
+
+<form method="POST">
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+        Update Stock
+    </button>
+
+</form>
+
+<br>
+
+<a href="{% url 'stock_list' %}">
+    Back to Stocks
+</a>
+
+</body>
+</html>
