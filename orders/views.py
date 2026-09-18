@@ -162,3 +162,68 @@ def order_detail(request, order_id):
         "orders/order_detail.html",
         {"order": order}
     )
+
+@login_required
+def wholesaler_orders(request):
+
+    wholesaler = request.user.wholesaler_profile
+
+    orders = (
+        Order.objects
+        .filter(wholesaler = wholesaler)
+        .select_related("retailer")
+        .prefetch_related("items__product")
+        .order_by("-order_date")
+    )
+
+    return render(
+        request,
+        "orders/wholesaler_orders.html",
+        {
+            "orders": orders
+        }
+    )
+
+@login_required
+def wholesaler_order_detail(request, order_id):
+
+    wholesaler = request.user.wholesaler_profile
+
+    order = get_object_or_404(
+        Order.objects
+        .select_related("retailer")
+        .prefetch_related("items__product"),
+        id = order_id,
+        wholesaler = wholesaler
+    )
+
+    if request.method == "POST":
+
+        action = request.POST.get("action")
+
+        if order.status != "PENDING":
+            return redirect(
+                "wholesaler_order_detail",
+                order_id = order.id
+            )
+
+        if action == "accept":
+            order.status = "ACCEPTED"
+            order.save()
+
+        elif action == "rejected":
+            order.status = "REJECTED"
+            order.save()
+
+        return redirect(
+            "wholesaler_order_detail",
+            order_id=order.id
+        )
+
+    return render(
+        request,
+        "orders/wholesaler_order_details.html",
+        {
+            "order": order
+        }
+    )

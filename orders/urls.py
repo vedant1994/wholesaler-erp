@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import wholesaler_list, wholesaler_products, create_order, my_orders, order_detail
+from .views import wholesaler_list, wholesaler_products, create_order, my_orders, order_detail, wholesaler_orders, wholesaler_order_detail
 
 urlpatterns = [
     path(
@@ -31,4 +31,18 @@ urlpatterns = [
         order_detail,
         name="order_detail"
     ),
+
+    path(
+        "wholesaler/orders/",
+        wholesaler_orders,
+        name="wholesaler_orders"
+    ),
+
+    path(
+        "wholesaler/orders/<int:order_id>/",
+        wholesaler_order_detail,
+        name="wholesaler_order_detail"
+    ),
+
+
 ]

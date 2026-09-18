@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Incoming Orders</title>
+</head>
+
+<body>
+
+<h1>Incoming Orders</h1>
+
+{% if orders %}
+
+    {% for order in orders %}
+
+        <div>
+
+            <h2>
+                Order #{{ order.id }}
+            </h2>
+
+            <p>
+                <strong>Retailer:</strong>
+                {{ order.retailer.shop_name }}
+            </p>
+
+            <p>
+                <strong>Owner:</strong>
+                {{ order.retailer.owner_name }}
+            </p>
+
+            <p>
+                <strong>Phone:</strong>
+                {{ order.retailer.phone }}
+            </p>
+
+            <p>
+                <strong>Status:</strong>
+                {{ order.get_status_display }}
+            </p>
+
+            <p>
+                <strong>Order Date:</strong>
+                {{ order.order_date }}
+            </p>
+
+            <a href="{% url 'wholesaler_order_detail' order.id %}">
+                View Order
+            </a>
+
+        </div>
+
+        <hr>
+
+    {% endfor %}
+
+{% else %}
+
+    <p>No orders received yet.</p>
+
+{% endif %}
+
+<br>
+
+<a href="{% url 'dashboard' %}">
+    Back to Dashboard
+</a>
+
+</body>
+</html>

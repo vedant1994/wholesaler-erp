@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order #{{ order.id }}</title>
+</head>
+
+<body>
+
+<h1>Order #{{ order.id }}</h1>
+
+<hr>
+
+<h2>Retailer Information</h2>
+
+<p>
+    <strong>Shop:</strong>
+    {{ order.retailer.shop_name }}
+</p>
+
+<p>
+    <strong>Owner:</strong>
+    {{ order.retailer.owner_name }}
+</p>
+
+<p>
+    <strong>Phone:</strong>
+    {{ order.retailer.phone }}
+</p>
+
+<p>
+    <strong>Address:</strong>
+    {{ order.retailer.address }}
+</p>
+
+<hr>
+
+<h2>Order Information</h2>
+
+<p>
+    <strong>Status:</strong>
+    {{ order.get_status_display }}
+</p>
+
+<p>
+    <strong>Order Date:</strong>
+    {{ order.order_date }}
+</p>
+
+{% if order.notes %}
+
+<p>
+    <strong>Retailer Notes:</strong>
+    {{ order.notes }}
+</p>
+
+{% endif %}
+
+<hr>
+
+<h2>Products</h2>
+
+<table border="1" cellpadding="10">
+
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Quantity</th>
+            <th>Price Per Unit</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        {% for item in order.items.all %}
+
+        <tr>
+
+            <td>
+                {{ item.product.name }}
+            </td>
+
+            <td>
+                {{ item.product.sku }}
+            </td>
+
+            <td>
+                {{ item.quantity }}
+            </td>
+
+            <td>
+                ₹{{ item.price_per_unit }}
+            </td>
+
+            <td>
+                ₹{{ item.total_price }}
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+<hr>
+
+{% if order.status == "PENDING" %}
+
+    <h2>Order Action</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <button
+            type="submit"
+            name="action"
+            value="accept"
+        >
+            Accept Order
+        </button>
+
+        <button
+            type="submit"
+            name="action"
+            value="reject"
+        >
+            Reject Order
+        </button>
+
+    </form>
+
+{% else %}
+
+    <p>
+        This order has already been processed.
+    </p>
+
+{% endif %}
+
+<br>
+
+<a href="{% url 'wholesaler_orders' %}">
+    Back to Orders
+</a>
+
+</body>
+</html>

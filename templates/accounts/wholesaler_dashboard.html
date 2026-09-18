@@ -29,15 +29,23 @@
 
     <h3>Wholesaler Features</h3>
 
-    <ul>
-        <li>Manage Retailers</li>
-        <li>Manage Products</li>
-        <li>Manage Stock</li>
-        <li>Manage Orders</li>
-        <li>Manage Invoices</li>
-        <li>Manage Payments</li>
-        <li>Manage Shipments</li>
-    </ul>
+    <a href="{% url 'product_list' %}">
+        Products
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'stock_list' %}">
+        Stock
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'wholesaler_orders' %}">
+        Incoming Orders
+    </a>
+
+    <br><br>
 
     <a href="{% url 'logout' %}">
         Logout
