@@ -34,15 +34,20 @@
     <h3>Retailer Features</h3>
 
     <ul>
-        <li>My Wholesalers</li>
-        <li>Browse Products</li>
-        <li>Place Orders</li>
-        <li>My Orders</li>
-        <li>My Stock</li>
-        <li>Invoices</li>
-        <li>Payments</li>
-        <li>Shipments</li>
-        <li>Customers</li>
+
+
+    <a href="{% url 'wholesaler_list' %}">
+        My Wholesalers
+    </a>
+
+    <br><br>
+
+    <a href="{% url 'my_orders' %}">
+        My Orders
+    </a>
+
+    <br><br>
+
     </ul>
 
     <a href="{% url 'logout' %}">

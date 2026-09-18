@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Order</title>
+</head>
+
+<body>
+
+<h1>Create Order</h1>
+
+<h2>{{ wholesaler.business_name }}</h2>
+
+<hr>
+
+<h3>Product Details</h3>
+
+<p>
+    <strong>Product:</strong>
+    {{ product.name }}
+</p>
+
+<p>
+    <strong>SKU:</strong>
+    {{ product.sku }}
+</p>
+
+<p>
+    <strong>Category:</strong>
+    {{ product.category }}
+</p>
+
+<p>
+    <strong>Unit:</strong>
+    {{ product.unit }}
+</p>
+
+{% if stock %}
+    <p>
+        <strong>Available Quantity:</strong>
+        {{ stock.quantity }}
+    </p>
+
+    <p>
+        <strong>Selling Price:</strong>
+        ₹{{ stock.selling_price }}
+    </p>
+{% else %}
+    <p>
+        This product currently has no stock.
+    </p>
+{% endif %}
+
+<hr>
+
+<form method="POST">
+
+    {% csrf_token %}
+
+    {{ form.non_field_errors }}
+
+    <p>
+        {{ form.quantity.label_tag }}
+        {{ form.quantity }}
+
+        {% for error in form.quantity.errors %}
+            <br>
+            <strong>{{ error }}</strong>
+        {% endfor %}
+    </p>
+
+    <p>
+        {{ form.notes.label_tag }}
+        {{ form.notes }}
+
+        {% for error in form.notes.errors %}
+            <br>
+            <strong>{{ error }}</strong>
+        {% endfor %}
+    </p>
+
+    <button type="submit">
+        Place Order
+    </button>
+
+</form>
+
+<br>
+
+<a href="{% url 'wholesaler_products' wholesaler.id %}">
+    Back to Products
+</a>
+
+</body>
+</html>
