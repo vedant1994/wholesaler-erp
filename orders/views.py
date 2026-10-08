@@ -7,6 +7,7 @@ from products.models import Product
 
 from .models import Order, OrderItem
 from .forms import CreateOrderForm
+from .services import fulfill_order
 
 # Create your views here.
 
@@ -66,6 +67,8 @@ def create_order(request, wholesaler_id, product_id):
         wholesaler=wholesaler
     )
 
+    stock = product.stocks.order_by("-created_at").first()
+
     form = CreateOrderForm()
 
     if request.method == "POST":
@@ -76,8 +79,6 @@ def create_order(request, wholesaler_id, product_id):
 
             quantity = form.cleaned_data["quantity"]
             notes = form.cleaned_data["notes"]
-
-            stock = product.stocks.order_by("-created_at").first()
 
             if stock is None:
 
@@ -112,6 +113,8 @@ def create_order(request, wholesaler_id, product_id):
                     "order_detail",
                     order_id=order.id
                 )
+        else:
+            form = CreateOrderForm()
 
     return render(
         request,
@@ -120,7 +123,7 @@ def create_order(request, wholesaler_id, product_id):
             "form": form,
             "product": product,
             "wholesaler": wholesaler,
-            "stock": product.stocks.order_by("-created_at").first(),
+            "stock": stock,
         }
     )
 
@@ -209,11 +212,22 @@ def wholesaler_order_detail(request, order_id):
 
         if action == "accept":
             order.status = "ACCEPTED"
-            order.save()
+            order.save(update_fields=["status"])
+
+            fulfilled = fulfill_order(order.id)
+
+            if not  fulfilled:
+                order.status = "WAITING_FOR_STOCK"
+
+                order.save(
+                    update_fields=["status"]
+                )
 
         elif action == "rejected":
             order.status = "REJECTED"
-            order.save()
+            order.save(
+                update_fields=["status"]
+            )
 
         return redirect(
             "wholesaler_order_detail",
@@ -226,4 +240,40 @@ def wholesaler_order_detail(request, order_id):
         {
             "order": order
         }
+    )
+
+@login_required
+def fulfill_waiting_order(request, order_id):
+
+    wholesaler = request.user.wholesaler_profile
+
+    order = get_object_or_404(
+        Order,
+        id = order_id,
+        wholesaler = wholesaler
+    )
+
+    if request.method != "POST":
+        return redirect(
+            "wholesaler_order_detail",
+            order_id = order_id
+        )
+
+    if order.status != "WAITING_FOR_STOCK":
+        return redirect(
+            "wholesaler_order_detail",
+            order_id = order_id
+        )
+
+    fulfilled = fulfill_order(order.id)
+
+    if not fulfilled:
+        return redirect(
+            "wholesaler_order_detail",
+            order_id = order_id
+        )
+
+    return redirect(
+        "wholesaler_order_detail",
+        order_id = order_id
     )

@@ -32,6 +32,45 @@
     {{ order.retailer.address }}
 </p>
 
+{% if order.status == "PROCESSING" or order.status == "SHIPPED" or order.status == "DELIVERED" %}
+
+    {% if order.invoice %}
+        <hr>
+
+        <h3>Invoice</h3>
+
+        <p>
+            Invoice Number:
+            <strong>{{ order.invoice.invoice_number }}</strong>
+        </p>
+
+        <a href="{% url 'invoice_detail' order.invoice.id %}">
+            View Invoice
+        </a>
+
+    {% else %}
+        <hr>
+
+        <h3>Billing</h3>
+
+        <p>
+            This order has been fulfilled and is ready for invoicing.
+        </p>
+
+        <form method="POST"
+              action="{% url 'generate_invoice' order.id %}">
+
+            {% csrf_token %}
+
+            <button type="submit">
+                Generate Invoice
+            </button>
+
+        </form>
+    {% endif %}
+
+{% endif %}
+
 <hr>
 
 <h2>Order Information</h2>
@@ -140,7 +179,47 @@
 
 {% endif %}
 
-<br>
+{% if order.status == "WAITING_FOR_STOCK" %}
+
+    <hr>
+
+    <h3>Order is waiting for stock</h3>
+
+    <p>
+        This order has been accepted but could not be fulfilled
+        because sufficient stock was not available.
+    </p>
+
+    <form method="POST"
+          action="{% url 'fulfill_waiting_order' order.id %}">
+
+        {% csrf_token %}
+
+        <button type="submit">
+            Fulfill Order
+        </button>
+
+    </form>
+
+{% elif order.status == "PROCESSING" %}
+
+    <p>
+        <strong>
+            Stock has been transferred and the order is being processed.
+        </strong>
+    </p>
+
+{% elif order.status == "REJECTED" %}
+
+    <p>
+        <strong>
+            This order was rejected.
+        </strong>
+    </p>
+
+{% endif %}
+
+<br>    
 
 <a href="{% url 'wholesaler_orders' %}">
     Back to Orders

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        Invoice {{ invoice.invoice_number }}
+    </title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .invoice-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            color: #666;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        .invoice-container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .invoice-title {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .invoice-number {
+            text-align: right;
+        }
+
+        .business-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .business-box {
+            width: 45%;
+        }
+
+        .business-box h3 {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f1f1;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .summary {
+            width: 350px;
+            margin-left: auto;
+            margin-top: 25px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .grand-total {
+            font-size: 20px;
+            font-weight: bold;
+            border-top: 2px solid #333;
+            margin-top: 10px;
+            padding-top: 12px;
+        }
+
+        .status {
+            margin-top: 25px;
+            font-weight: bold;
+        }
+
+        .actions {
+            margin-bottom: 20px;
+        }
+
+        .actions a,
+        .actions button {
+            padding: 10px 16px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        .back-button {
+            background: #ddd;
+            color: #000;
+        }
+
+        .print-button {
+            background: #333;
+            color: white;
+        }
+
+       @media print {
+
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+
+            .invoice-container {
+                box-shadow: none;
+                max-width: none;
+                padding: 20px;
+            }
+
+            .actions {
+                display: none;
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+            }
+
+            .invoice-footer {
+                margin-top: 40px;
+        }
+    }
+    </style>
+</head>
+
+<body>
+
+<div class="actions">
+
+    <a
+        href="{% url 'invoice_list' %}"
+        class="back-button"
+    >
+        ← Back to Invoices
+    </a>
+
+    <a
+        href="{% url 'wholesaler_order_detail' invoice.order.id %}"
+        class="back-button"
+    >
+        Back to Order
+    </a>
+
+    <a
+        href="{% url 'invoice_pdf' invoice.id %}"
+        class="print-button"
+    >
+        📄 Download PDF
+    </a>
+
+</div>
+
+
+<div class="invoice-container">
+
+    <!-- HEADER -->
+
+    <div class="invoice-header">
+
+        <div>
+
+            <div class="invoice-title">
+                TAX INVOICE
+            </div>
+
+            <p>
+                <strong>Invoice No:</strong>
+                {{ invoice.invoice_number }}
+            </p>
+
+            <p>
+                <strong>Invoice Date:</strong>
+                {{ invoice.invoice_date|date:"d M Y, h:i A" }}
+            </p>
+
+        </div>
+
+
+        <div class="invoice-number">
+
+            <strong>Payment Status</strong>
+
+            <p>
+                {{ invoice.get_status_display }}
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <hr>
+
+
+    <!-- BUSINESS DETAILS -->
+
+    <div class="business-section">
+
+        <div class="business-box">
+
+            <h3>Seller / Wholesaler</h3>
+
+            <strong>
+                {{ invoice.wholesaler.business_name }}
+            </strong>
+
+            <p>
+                {{ invoice.wholesaler.address }}
+            </p>
+
+            <p>
+                {{ invoice.wholesaler.city }},
+                {{ invoice.wholesaler.state }}
+                - {{ invoice.wholesaler.pincode }}
+            </p>
+
+            <p>
+                Phone:
+                {{ invoice.wholesaler.phone }}
+            </p>
+
+            {% if invoice.wholesaler.gst_number %}
+
+                <p>
+                    <strong>GSTIN:</strong>
+                    {{ invoice.wholesaler.gst_number }}
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="business-box">
+
+            <h3>Buyer / Retailer</h3>
+
+            <strong>
+                {{ invoice.retailer.shop_name }}
+            </strong>
+
+            <p>
+                Owner:
+                {{ invoice.retailer.owner_name }}
+            </p>
+
+            <p>
+                {{ invoice.retailer.address }}
+            </p>
+
+            <p>
+                {{ invoice.retailer.city }},
+                {{ invoice.retailer.state }}
+                - {{ invoice.retailer.pincode }}
+            </p>
+
+            <p>
+                Phone:
+                {{ invoice.retailer.phone }}
+            </p>
+
+            {% if invoice.retailer.gst_number %}
+
+                <p>
+                    <strong>GSTIN:</strong>
+                    {{ invoice.retailer.gst_number }}
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- ITEMS -->
+
+    <h3>Items</h3>
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>#</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>GST %</th>
+                <th>Tax</th>
+                <th>Total</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            {% for item in invoice.items.all %}
+
+                <tr>
+
+                    <td>
+                        {{ forloop.counter }}
+                    </td>
+
+                    <td>
+                        {{ item.product.name }}
+                    </td>
+
+                    <td>
+                        {{ item.quantity }}
+                    </td>
+
+                    <td>
+                        ₹{{ item.price_per_unit }}
+                    </td>
+
+                    <td>
+                        {{ item.tax_rate }}%
+                    </td>
+
+                    <td>
+                        ₹{{ item.tax_amount }}
+                    </td>
+
+                    <td>
+                        ₹{{ item.total_price }}
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td colspan="7">
+                        No items found.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+
+    <!-- TOTALS -->
+
+    <div class="summary">
+
+        <div class="summary-row">
+
+            <span>Subtotal</span>
+
+            <span>
+                ₹{{ invoice.subtotal }}
+            </span>
+
+        </div>
+
+
+        <div class="summary-row">
+
+            <span>Discount</span>
+
+            <span>
+                ₹{{ invoice.discount }}
+            </span>
+
+        </div>
+
+
+        <div class="summary-row">
+
+            <span>Total GST / Tax</span>
+
+            <span>
+                ₹{{ invoice.tax_amount }}
+            </span>
+
+        </div>
+
+
+        <div class="summary-row grand-total">
+
+            <span>Grand Total</span>
+
+            <span>
+                ₹{{ invoice.grand_total }}
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- PAYMENT -->
+
+    <div class="status">
+
+    Payment Status:
+    <strong>
+        {{ invoice.get_status_display }}
+    </strong>
+
+</div>
+
+
+    {% if invoice.status != "PAID" and invoice.status != "CANCELLED" %}
+
+        <div style="margin-top: 20px;">
+
+            <a
+                href="{% url 'create_invoice_payment' invoice.id %}"
+            >
+                💰 Record Payment
+            </a>
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- FOOTER -->
+
+    <div class="invoice-footer">
+
+        <p>
+            This is a computer-generated invoice.
+        </p>
+
+        <p>
+            Thank you for your business.
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>

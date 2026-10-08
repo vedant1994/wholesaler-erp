@@ -9,6 +9,7 @@ class Order(models.Model):
     STATUS_CHOICES = [
         ("PENDING","Pending"),
         ("ACCEPTED","Accepted"),
+        ("WAITING_FOR_STOCK", "Waiting for Stock"),
         ("REJECTED","Rejected"),
         ("PROCESSING","Processing"),
         ("SHIPPED","Shipped"),
@@ -29,7 +30,7 @@ class Order(models.Model):
     )
 
     status = models.CharField(
-        max_length=20,
+        max_length=30,
         choices = STATUS_CHOICES,
         default="PENDING"
     )

@@ -35,6 +35,7 @@
 </p>
 
 {% if stock %}
+
     <p>
         <strong>Available Quantity:</strong>
         {{ stock.quantity }}
@@ -44,10 +45,22 @@
         <strong>Selling Price:</strong>
         ₹{{ stock.selling_price }}
     </p>
+
+    {% if stock.quantity <= 0 %}
+        <p>
+            <strong>
+                Currently out of stock.
+                You can still place an order.
+            </strong>
+        </p>
+    {% endif %}
+
 {% else %}
+
     <p>
-        This product currently has no stock.
+        This product does not have pricing information yet.
     </p>
+
 {% endif %}
 
 <hr>

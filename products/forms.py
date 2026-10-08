@@ -12,6 +12,7 @@ class ProductForm(forms.ModelForm):
             "category",
             "unit",
             "description",
+            "gst_rate",
         ]
 
 class StockForm(forms.ModelForm):
