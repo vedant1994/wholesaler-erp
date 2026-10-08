@@ -1,6 +1,6 @@
 from django.db import models
 
-from billing.models import Invoice
+from billing.models import Invoice, CustomerInvoice
 from accounts.models import WholesalerProfile, RetailerProfile
 
 # Create your models here.
@@ -116,3 +116,24 @@ class LedgerEntry(models.Model):
             f"{self.entry_type} - "
             f"₹{self.amount}"
         )
+
+class CustomerPayment(models.Model):
+    PAYMENT_METHOD_CHOICES = [
+        ("CASH", "Cash"),
+        ("UPI", "UPI"),
+        ("BANK_TRANSFER", "Bank Transfer"),
+        ("CHEQUE", "Cheque"),
+        ("CARD", "Card"),
+        ("OTHER", "Other"),
+    ]
+
+    invoice = models.ForeignKey(CustomerInvoice, on_delete=models.PROTECT, related_name="payments")
+    amount = models.DecimalField(max_digits=14, decimal_places=2)
+    payment_method = models.CharField(max_length=30, choices=PAYMENT_METHOD_CHOICES)
+    payment_date = models.DateTimeField(auto_now_add=True)
+    reference_number = models.CharField(max_length=100, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Customer Payment #{self.id} - {self.invoice.invoice_number}"

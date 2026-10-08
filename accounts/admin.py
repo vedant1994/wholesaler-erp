@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (UserProfile, WholesalerProfile, RetailerProfile)
+from .models import (UserProfile, WholesalerProfile, RetailerProfile, Notification)
 
 # Register your models here.
 
@@ -16,3 +16,6 @@ class WholesalerProfileAdmin(admin.ModelAdmin):
 class RetailerProfileAdmin(admin.ModelAdmin):
     list_display=("shop_name", "owner_name","user","phone","gst_number","city","state")
 
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display=("user", "title", "is_read", "created_at")

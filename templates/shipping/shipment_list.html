@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Shipments{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Shipments & Logistics</h1>
+    <p class="page-subtitle">Track orders dispatch, courier details, and delivery statuses.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Tracking #</th>
+          <th>Order</th>
+          <th>Courier Partner</th>
+          <th>Dispatch Date</th>
+          <th>Delivery Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for shipment in shipments %}
+        <tr>
+          <td class="text-bold">{{ shipment.tracking_number }}</td>
+          <td>Order #{{ shipment.order.id }}</td>
+          <td>{{ shipment.courier_name|default:"In-house Delivery" }}</td>
+          <td class="text-muted">{{ shipment.dispatch_date|date:"d M Y" }}</td>
+          <td>
+            {% if shipment.status == 'DELIVERED' %}
+              <span class="badge badge-green">Delivered</span>
+            {% elif shipment.status == 'DISPATCHED' %}
+              <span class="badge badge-blue">Dispatched</span>
+            {% else %}
+              <span class="badge badge-amber">{{ shipment.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'shipment_detail' shipment.id %}" class="btn btn-ghost btn-sm">View Details</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted" style="padding: 32px;">No shipments recorded yet</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

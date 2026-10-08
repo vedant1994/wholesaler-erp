@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Shipment Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Shipment #{{ shipment.tracking_number }}</h1>
+    <p class="page-subtitle">Logistics tracking details for Order #{{ shipment.order.id }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'shipment_list' %}" class="btn btn-ghost">Back to Shipments</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 600px; padding: 28px;">
+  <div style="display: grid; grid-template-columns: 140px 1fr; gap: 16px; row-gap: 20px;">
+    <div style="font-weight: 600; color: #6b7280;">Tracking Number</div>
+    <div style="font-weight: 700; color: #111827;">{{ shipment.tracking_number }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Order ID</div>
+    <div>Order #{{ shipment.order.id }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Courier Name</div>
+    <div>{{ shipment.courier_name|default:"Standard Delivery" }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Status</div>
+    <div>
+      {% if shipment.status == 'DELIVERED' %}
+        <span class="badge badge-green">Delivered</span>
+      {% elif shipment.status == 'DISPATCHED' %}
+        <span class="badge badge-blue">Dispatched</span>
+      {% else %}
+        <span class="badge badge-amber">{{ shipment.status }}</span>
+      {% endif %}
+    </div>
+
+    <div style="font-weight: 600; color: #6b7280;">Dispatch Date</div>
+    <div class="text-muted">{{ shipment.dispatch_date|date:"d M Y, h:i A" }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Estimated Delivery</div>
+    <div class="text-muted">{{ shipment.estimated_delivery|date:"d M Y"|default:"Not specified" }}</div>
+  </div>
+</div>
+{% endblock %}

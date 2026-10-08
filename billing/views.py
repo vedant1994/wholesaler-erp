@@ -27,7 +27,7 @@ def genrate_invoice_view(request, order_id):
 
     if request.method != "POST":
         return redirect(
-            "wholeslaer_order_detail",
+            "wholesaler_order_detail",
             order_id = order.id
         )
 
@@ -53,51 +53,71 @@ def genrate_invoice_view(request, order_id):
 
 @login_required
 def invoice_detail(request, invoice_id):
-    wholesaler = request.user.wholesaler_profile
-
-    invoice = get_object_or_404(
-        Invoice.objects
-        .select_related(
-            "order",
-            "wholesaler",
-            "retailer",
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.role == "WHOLESALER":
+        wholesaler = request.user.wholesaler_profile
+        invoice = get_object_or_404(
+            Invoice.objects.select_related("order", "wholesaler", "retailer").prefetch_related("items__product", "payments"),
+            id=invoice_id,
+            wholesaler=wholesaler
         )
-        .prefetch_related(
-            "items__product"
-        ),
-        id=invoice_id,
-        wholesaler = wholesaler
-    )
+    elif profile and profile.role == "RETAILER":
+        retailer = request.user.retailer_profile
+        invoice = get_object_or_404(
+            Invoice.objects.select_related("order", "wholesaler", "retailer").prefetch_related("items__product", "payments"),
+            id=invoice_id,
+            retailer=retailer
+        )
+    else:
+        invoice = get_object_or_404(
+            Invoice.objects.select_related("order", "wholesaler", "retailer").prefetch_related("items__product", "payments"),
+            id=invoice_id
+        )
+
+    total_paid = sum(p.amount for p in invoice.payments.all())
+    outstanding = max(0, invoice.grand_total - total_paid)
 
     return render(
         request,
         "billing/invoice_detail.html",
         {
-            "invoice": invoice
+            "invoice": invoice,
+            "total_paid": total_paid,
+            "outstanding": outstanding,
         }
     )
 
+
 @login_required
 def invoice_list(request):
-    wholesaler = request.user.wholesaler_profile
-
-    invoices = (
-        Invoice.objects
-        .filter(wholesaler=wholesaler)
-        .select_related(
-            "retailer",
-            "order",
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.role == "WHOLESALER":
+        wholesaler = request.user.wholesaler_profile
+        invoices = (
+            Invoice.objects
+            .filter(wholesaler=wholesaler)
+            .select_related("retailer", "order")
+            .order_by("-invoice_date")
         )
-        .order_by("-invoice_date")
-    )
+    elif profile and profile.role == "RETAILER":
+        retailer = request.user.retailer_profile
+        invoices = (
+            Invoice.objects
+            .filter(retailer=retailer)
+            .select_related("wholesaler", "order")
+            .order_by("-invoice_date")
+        )
+    else:
+        invoices = Invoice.objects.none()
 
     search = request.GET.get("search", "").strip()
     status = request.GET.get("status", "").strip()
 
     if search:
-        invoice = invoices.filter(
+        invoices = invoices.filter(
             models.Q(invoice_number__icontains=search)
             | models.Q(retailer__shop_name__icontains=search)
+            | models.Q(wholesaler__business_name__icontains=search)
         )
 
     if status:
@@ -116,6 +136,7 @@ def invoice_list(request):
         context
     )
 
+
 @login_required
 def invoice_pdf(request, invoice_id):
 
@@ -132,3 +153,16 @@ def invoice_pdf(request, invoice_id):
         filename=f"invoice-{invoice_id}.pdf",
         content_type="application/pdf"
     )
+
+from .models import CustomerInvoice
+
+@login_required
+def customer_invoices_view(request):
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.role == "RETAILER":
+        retailer = request.user.retailer_profile
+        invoices = CustomerInvoice.objects.filter(retailer=retailer).select_related("customer").order_by("-invoice_date")
+    else:
+        invoices = CustomerInvoice.objects.none()
+
+    return render(request, "billing/invoice_list.html", {"invoices": invoices})

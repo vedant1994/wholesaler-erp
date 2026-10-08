@@ -1,251 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <title>Invoices</title>
-
-    <style>
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            margin: 0;
-            padding: 30px;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: auto;
-            background: white;
-            padding: 30px;
-        }
-
-        h1 {
-            margin-bottom: 25px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
-        .filters input,
-        .filters select,
-        .filters button {
-            padding: 10px;
-            font-size: 14px;
-        }
-
-        .filters input {
-            width: 300px;
-        }
-
-        .filters button {
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-
-        th {
-            background: #f1f1f1;
-        }
-
-        .status {
-            font-weight: bold;
-        }
-
-        .view-link {
-            text-decoration: none;
-        }
-
-        .empty {
-            text-align: center;
-            padding: 30px;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-    <h1>Invoices</h1>
-
-
-    <!-- Search and Filter -->
-
-    <form method="GET" class="filters">
-
-        <input
-            type="text"
-            name="search"
-            placeholder="Search invoice or retailer..."
-            value="{{ search }}"
-        >
-
-
-        <select name="status">
-
-            <option value="">
-                All Statuses
-            </option>
-
-            {% for value, label in status_choices %}
-
-                <option
-                    value="{{ value }}"
-                    {% if status == value %}selected{% endif %}
-                >
-                    {{ label }}
-                </option>
-
-            {% endfor %}
-
-        </select>
-
-
-        <button type="submit">
-            Search
-        </button>
-
-
-        <a href="{% url 'invoice_list' %}">
-            Clear
-        </a>
-
-    </form>
-
-
-    <!-- Invoice Table -->
-
-    <table>
-
-        <thead>
-
-            <tr>
-
-                <th>
-                    Invoice Number
-                </th>
-
-                <th>
-                    Retailer
-                </th>
-
-                <th>
-                    Order
-                </th>
-
-                <th>
-                    Date
-                </th>
-
-                <th>
-                    Grand Total
-                </th>
-
-                <th>
-                    Status
-                </th>
-
-                <th>
-                    Action
-                </th>
-
-            </tr>
-
-        </thead>
-
-
-        <tbody>
-
-            {% for invoice in invoices %}
-
-                <tr>
-
-                    <td>
-                        <strong>
-                            {{ invoice.invoice_number }}
-                        </strong>
-                    </td>
-
-
-                    <td>
-                        {{ invoice.retailer.shop_name }}
-                    </td>
-
-
-                    <td>
-                        #{{ invoice.order.id }}
-                    </td>
-
-
-                    <td>
-                        {{ invoice.invoice_date|date:"d M Y" }}
-                    </td>
-
-
-                    <td>
-                        ₹{{ invoice.grand_total }}
-                    </td>
-
-
-                    <td class="status">
-                        {{ invoice.get_status_display }}
-                    </td>
-
-
-                    <td>
-
-                        <a
-                            href="{% url 'invoice_detail' invoice.id %}"
-                            class="view-link"
-                        >
-                            View
-                        </a>
-
-                    </td>
-
-                </tr>
-
-
-            {% empty %}
-
-                <tr>
-
-                    <td
-                        colspan="7"
-                        class="empty"
-                    >
-                        No invoices found.
-                    </td>
-
-                </tr>
-
-            {% endfor %}
-
-        </tbody>
-
-    </table>
-
+{% extends 'base.html' %}
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="breadcrumb"><a href="{% url 'dashboard' %}">Dashboard</a><span>/</span><span class="current">Billing</span></div>
+    <h1 class="page-title">Invoices</h1>
+    <p class="page-subtitle">All wholesale invoices for your retailers</p>
+  </div>
 </div>
 
-</body>
+<div class="card">
+  <div class="filter-bar">
+    <div class="filter-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="invoiceSearch" placeholder="Search invoice number or retailer..." oninput="filterInvoices()">
+    </div>
+    <select class="filter-select" id="statusFilter" onchange="filterInvoices()">
+      <option value="">All status</option>
+      <option value="UNPAID">Unpaid</option>
+      <option value="PARTIALLY_PAID">Partially Paid</option>
+      <option value="PAID">Paid</option>
+      <option value="CANCELLED">Cancelled</option>
+    </select>
+  </div>
 
-</html>
+  <div class="table-wrap">
+    <table class="table" id="invoiceTable">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Retailer</th>
+          <th>Invoice Date</th>
+          <th>Grand Total</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr data-inv="{{ invoice.invoice_number|lower }}" data-retailer="{{ invoice.retailer.shop_name|lower }}" data-status="{{ invoice.status }}"
+            class="table-row-link" data-href="/billing/{{ invoice.id }}/">
+          <td class="text-bold">{{ invoice.invoice_number }}</td>
+          <td>{{ invoice.retailer.shop_name }}</td>
+          <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
+          <td style="font-weight:700;">₹{{ invoice.grand_total }}</td>
+          <td>
+            {% if invoice.status == 'PAID' %}<span class="badge badge-green">Paid</span>
+            {% elif invoice.status == 'PARTIALLY_PAID' %}<span class="badge badge-amber">Partially Paid</span>
+            {% elif invoice.status == 'UNPAID' %}<span class="badge badge-red">Unpaid</span>
+            {% elif invoice.status == 'CANCELLED' %}<span class="badge badge-gray">Cancelled</span>
+            {% endif %}
+          </td>
+          <td onclick="event.stopPropagation()">
+            <div style="display:flex;gap:6px;">
+              <a href="/billing/{{ invoice.id }}/" class="btn btn-ghost btn-sm">View</a>
+              {% if invoice.status != 'PAID' and invoice.status != 'CANCELLED' %}
+                <a href="/payments/record/{{ invoice.id }}/" class="btn btn-primary btn-sm">Pay</a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">
+          <div class="empty-state">
+            <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <h3>No invoices yet</h3>
+            <p>Invoices are generated automatically when an order is fulfilled.</p>
+          </div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterInvoices() {
+  const search = document.getElementById('invoiceSearch').value.toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  document.querySelectorAll('#invoiceTable tbody tr[data-inv]').forEach(row => {
+    const inv = row.dataset.inv || '';
+    const ret = row.dataset.retailer || '';
+    const st = row.dataset.status || '';
+    const matchSearch = inv.includes(search) || ret.includes(search);
+    const matchStatus = !status || st === status;
+    row.style.display = matchSearch && matchStatus ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

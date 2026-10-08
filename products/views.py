@@ -301,8 +301,19 @@ def expiry_list(request):
         else:
             stock.expiry_status = "EXPIRING SOON"
 
-    return render(
+        return render(
         request,
         "products/expiry_list.html",
         {"stocks": stocks, "today": today}
     )
+
+@login_required
+def retailer_stock_list(request):
+    profile = getattr(request.user, 'profile', None)
+    if profile and profile.role == "RETAILER":
+        retailer = request.user.retailer_profile
+        stocks = Stock.objects.filter(product__wholesaler__in=retailer.wholesalers.all()).select_related("product")
+    else:
+        stocks = Stock.objects.none()
+
+    return render(request, "products/stock_list.html", {"stocks": stocks})

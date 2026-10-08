@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Customer Management</h1>
+    <p class="page-subtitle">View and manage customer contacts for counter sales and direct billing.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'add_customer' %}" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Customer
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Customer Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Address</th>
+          <th>GST Number</th>
+          <th>Registered Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in customers %}
+        <tr>
+          <td class="text-bold">{{ customer.name }}</td>
+          <td>{{ customer.phone }}</td>
+          <td>{{ customer.email|default:"—" }}</td>
+          <td>{{ customer.address|default:"—" }}</td>
+          <td>{{ customer.gst_number|default:"Not set" }}</td>
+          <td class="text-muted">{{ customer.created_at|date:"d M Y" }}</td>
+          <td>
+            <div style="display:flex; gap:6px;">
+              <a href="{% url 'customer_detail' customer.id %}" class="btn btn-ghost btn-sm">View</a>
+              <a href="{% url 'edit_customer' customer.id %}" class="btn btn-secondary btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted" style="padding: 32px;">No customers found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

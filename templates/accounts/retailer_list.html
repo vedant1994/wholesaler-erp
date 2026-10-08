@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Retailers{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Retailers</h1>
+    <p class="page-subtitle">Manage connected retail partners and shop accounts.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Shop Name</th>
+          <th>Owner Name</th>
+          <th>Phone</th>
+          <th>City & State</th>
+          <th>GST Number</th>
+          <th>Joined</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for retailer in retailers %}
+        <tr>
+          <td class="text-bold">{{ retailer.shop_name }}</td>
+          <td>{{ retailer.owner_name }}</td>
+          <td>{{ retailer.phone|default:"—" }}</td>
+          <td>{{ retailer.city }}{% if retailer.state %}, {{ retailer.state }}{% endif %}</td>
+          <td>{{ retailer.gst_number|default:"Not set" }}</td>
+          <td class="text-muted">{{ retailer.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted" style="padding: 32px;">No retailers found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

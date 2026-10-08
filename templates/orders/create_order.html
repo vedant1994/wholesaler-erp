@@ -1,107 +1,102 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Order</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Create Purchase Order{% endblock %}
 
-<h1>Create Order</h1>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="breadcrumb">
+      <a href="{% url 'wholesaler_list' %}">Wholesalers</a>
+      <span>/</span>
+      <a href="{% url 'wholesaler_products' wholesaler.id %}">{{ wholesaler.business_name }}</a>
+      <span>/</span>
+      <span class="current">Create Order</span>
+    </div>
+    <h1 class="page-title">Place Order with {{ wholesaler.business_name }}</h1>
+    <p class="page-subtitle">Configure order quantity and submit purchase request.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'wholesaler_products' wholesaler.id %}" class="btn btn-secondary">Back to Products</a>
+  </div>
+</div>
 
-<h2>{{ wholesaler.business_name }}</h2>
+<div class="grid-2">
+  <!-- Product Information Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Product Specifications</span>
+    </div>
+    <div class="card-body">
+      <div style="display: grid; grid-template-columns: 140px 1fr; gap: 12px; font-size: 14px; row-gap: 16px;">
+        <div style="font-weight: 600; color: #6b7280;">Product Name:</div>
+        <div style="font-weight: 700; color: #111827; font-size: 16px;">{{ product.name }}</div>
 
-<hr>
+        <div style="font-weight: 600; color: #6b7280;">SKU Code:</div>
+        <div><code>{{ product.sku }}</code></div>
 
-<h3>Product Details</h3>
+        <div style="font-weight: 600; color: #6b7280;">Category:</div>
+        <div><span class="badge badge-blue">{{ product.category|default:"General" }}</span></div>
 
-<p>
-    <strong>Product:</strong>
-    {{ product.name }}
-</p>
+        <div style="font-weight: 600; color: #6b7280;">Unit:</div>
+        <div>{{ product.unit|default:"Pcs" }}</div>
 
-<p>
-    <strong>SKU:</strong>
-    {{ product.sku }}
-</p>
+        {% if stock %}
+        <div style="font-weight: 600; color: #6b7280;">Available Stock:</div>
+        <div style="font-weight: 600; color: {% if stock.quantity > 0 %}#16a34a{% else %}#dc2626{% endif %};">
+          {{ stock.quantity }} {{ product.unit|default:"Pcs" }}
+        </div>
 
-<p>
-    <strong>Category:</strong>
-    {{ product.category }}
-</p>
+        <div style="font-weight: 600; color: #6b7280;">Unit Price:</div>
+        <div style="font-weight: 700; color: #2563eb; font-size: 18px;">₹{{ stock.selling_price }}</div>
+        {% else %}
+        <div colspan="2" style="color: #92400e; background: #fffbeb; padding: 12px; border-radius: 8px;">
+          ⚠️ No stock pricing available yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
-<p>
-    <strong>Unit:</strong>
-    {{ product.unit }}
-</p>
+  <!-- Order Form Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Order Form</span>
+    </div>
+    <div class="card-body">
+      <form method="POST" class="primary-form">
+        {% csrf_token %}
 
-{% if stock %}
+        {% if form.non_field_errors %}
+          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; color: #dc2626; font-size: 13px; margin-bottom: 16px;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
 
-    <p>
-        <strong>Available Quantity:</strong>
-        {{ stock.quantity }}
-    </p>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" for="{{ form.quantity.id_for_label }}" style="font-weight: 600; display: block; margin-bottom: 6px;">
+            Order Quantity ({{ product.unit|default:"Pcs" }})
+          </label>
+          {{ form.quantity }}
+          {% if form.quantity.errors %}
+            <p class="form-error" style="color: #dc2626; font-size: 12px; margin-top: 4px;">{{ form.quantity.errors.0 }}</p>
+          {% endif %}
+        </div>
 
-    <p>
-        <strong>Selling Price:</strong>
-        ₹{{ stock.selling_price }}
-    </p>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label" for="{{ form.notes.id_for_label }}" style="font-weight: 600; display: block; margin-bottom: 6px;">
+            Order Notes / Special Instructions
+          </label>
+          {{ form.notes }}
+          {% if form.notes.errors %}
+            <p class="form-error" style="color: #dc2626; font-size: 12px; margin-top: 4px;">{{ form.notes.errors.0 }}</p>
+          {% endif %}
+        </div>
 
-    {% if stock.quantity <= 0 %}
-        <p>
-            <strong>
-                Currently out of stock.
-                You can still place an order.
-            </strong>
-        </p>
-    {% endif %}
-
-{% else %}
-
-    <p>
-        This product does not have pricing information yet.
-    </p>
-
-{% endif %}
-
-<hr>
-
-<form method="POST">
-
-    {% csrf_token %}
-
-    {{ form.non_field_errors }}
-
-    <p>
-        {{ form.quantity.label_tag }}
-        {{ form.quantity }}
-
-        {% for error in form.quantity.errors %}
-            <br>
-            <strong>{{ error }}</strong>
-        {% endfor %}
-    </p>
-
-    <p>
-        {{ form.notes.label_tag }}
-        {{ form.notes }}
-
-        {% for error in form.notes.errors %}
-            <br>
-            <strong>{{ error }}</strong>
-        {% endfor %}
-    </p>
-
-    <button type="submit">
-        Place Order
-    </button>
-
-</form>
-
-<br>
-
-<a href="{% url 'wholesaler_products' wholesaler.id %}">
-    Back to Products
-</a>
-
-</body>
-</html>
+        <button type="submit" class="btn btn-primary w-full btn-lg" style="justify-content: center; margin-top: 12px;">
+          Submit Purchase Order
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

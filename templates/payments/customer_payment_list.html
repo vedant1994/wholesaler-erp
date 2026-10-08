@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Payments{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Customer Payments</h1>
+    <p class="page-subtitle">Track payments collected from retail counter sales customers.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Payment #</th>
+          <th>Customer</th>
+          <th>Invoice #</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for payment in payments %}
+        <tr>
+          <td class="text-bold">#{{ payment.id }}</td>
+          <td>{{ payment.invoice.customer.name }}</td>
+          <td>{{ payment.invoice.invoice_number }}</td>
+          <td class="text-bold" style="color: #16a34a;">₹{{ payment.amount }}</td>
+          <td><span class="badge badge-blue">{{ payment.payment_method }}</span></td>
+          <td class="text-muted">{{ payment.payment_date|date:"d M Y, h:i A" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted" style="padding: 32px;">No customer payments recorded yet</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

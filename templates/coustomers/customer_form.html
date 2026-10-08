@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Edit Customer{% else %}Add Customer{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{% if object %}Edit Customer: {{ object.name }}{% else %}Add New Customer{% endif %}</h1>
+    <p class="page-subtitle">Save customer contact details, address, and GST number for sales billing.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'customer_list' %}" class="btn btn-secondary">Back to Customers</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto; padding: 28px;">
+  <form method="POST" class="primary-form">
+    {% csrf_token %}
+    
+    {% for field in form %}
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label class="form-label" for="{{ field.id_for_label }}" style="font-weight:600; display:block; margin-bottom:6px;">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <p class="form-error" style="color:#dc2626; font-size:12px; margin-top:4px;">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
+      <a href="{% url 'customer_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">{% if object %}Update Customer{% else %}Save Customer{% endif %}</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

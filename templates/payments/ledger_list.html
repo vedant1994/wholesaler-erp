@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Account Ledger{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Account Ledger</h1>
+    <p class="page-subtitle">Complete debit and credit transactions record.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Entry #</th>
+          <th>Party</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Description</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+          <td class="text-bold">#{{ entry.id }}</td>
+          <td>
+            {% if user_role == 'WHOLESALER' %}{{ entry.retailer.shop_name }}{% else %}{{ entry.wholesaler.business_name }}{% endif %}
+          </td>
+          <td>
+            {% if entry.entry_type == 'DEBIT' %}
+              <span class="badge badge-red">DEBIT</span>
+            {% else %}
+              <span class="badge badge-green">CREDIT</span>
+            {% endif %}
+          </td>
+          <td class="text-bold">₹{{ entry.amount }}</td>
+          <td>{{ entry.description|default:"—" }}</td>
+          <td class="text-muted">{{ entry.created_at|date:"d M Y, h:i A" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted" style="padding: 32px;">No ledger entries found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

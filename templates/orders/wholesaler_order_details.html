@@ -1,229 +1,138 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Order #{{ order.id }}</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Order #{{ order.id }} Details{% endblock %}
 
-<h1>Order #{{ order.id }}</h1>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="breadcrumb">
+      <a href="{% url 'wholesaler_orders' %}">Wholesaler Orders</a>
+      <span>/</span>
+      <span class="current">Order #{{ order.id }}</span>
+    </div>
+    <h1 class="page-title">Order #{{ order.id }}</h1>
+    <p class="page-subtitle">Submitted on {{ order.order_date|date:"d M Y, h:i A" }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'wholesaler_orders' %}" class="btn btn-secondary">Back to Orders</a>
+  </div>
+</div>
 
-<hr>
+<div class="grid-2">
+  <!-- Retailer Details Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Retailer Details</span>
+      <span class="badge 
+        {% if order.status == 'PENDING' %}badge-amber
+        {% elif order.status == 'ACCEPTED' %}badge-blue
+        {% elif order.status == 'PROCESSING' %}badge-blue
+        {% elif order.status == 'DELIVERED' %}badge-green
+        {% elif order.status == 'REJECTED' %}badge-red
+        {% else %}badge-gray{% endif %}">
+        {{ order.get_status_display }}
+      </span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid; grid-template-columns: 120px 1fr; gap:12px; font-size:14px;">
+        <div style="font-weight:600; color:#6b7280;">Shop Name:</div>
+        <div style="font-weight:600; color:#111827;">{{ order.retailer.shop_name }}</div>
 
-<h2>Retailer Information</h2>
+        <div style="font-weight:600; color:#6b7280;">Owner Name:</div>
+        <div>{{ order.retailer.owner_name }}</div>
 
-<p>
-    <strong>Shop:</strong>
-    {{ order.retailer.shop_name }}
-</p>
+        <div style="font-weight:600; color:#6b7280;">Phone:</div>
+        <div>{{ order.retailer.phone }}</div>
 
-<p>
-    <strong>Owner:</strong>
-    {{ order.retailer.owner_name }}
-</p>
+        <div style="font-weight:600; color:#6b7280;">Address:</div>
+        <div>{{ order.retailer.address }}</div>
 
-<p>
-    <strong>Phone:</strong>
-    {{ order.retailer.phone }}
-</p>
+        {% if order.notes %}
+        <div style="font-weight:600; color:#6b7280;">Retailer Notes:</div>
+        <div style="background:#f9fafb; padding:8px 12px; border-radius:6px; font-size:13px; font-style:italic; color:#374151;">"{{ order.notes }}"</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
-<p>
-    <strong>Address:</strong>
-    {{ order.retailer.address }}
-</p>
-
-{% if order.status == "PROCESSING" or order.status == "SHIPPED" or order.status == "DELIVERED" %}
-
-    {% if order.invoice %}
-        <hr>
-
-        <h3>Invoice</h3>
-
-        <p>
-            Invoice Number:
-            <strong>{{ order.invoice.invoice_number }}</strong>
-        </p>
-
-        <a href="{% url 'invoice_detail' order.invoice.id %}">
-            View Invoice
-        </a>
-
-    {% else %}
-        <hr>
-
-        <h3>Billing</h3>
-
-        <p>
-            This order has been fulfilled and is ready for invoicing.
-        </p>
-
-        <form method="POST"
-              action="{% url 'generate_invoice' order.id %}">
-
-            {% csrf_token %}
-
-            <button type="submit">
-                Generate Invoice
-            </button>
-
+  <!-- Actions & Billing Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Order Status & Actions</span>
+    </div>
+    <div class="card-body">
+      {% if order.status == "PENDING" %}
+        <p class="text-muted" style="margin-bottom: 16px;">Review this incoming order and choose to accept or reject.</p>
+        <form method="POST" style="display:flex; gap:12px;">
+          {% csrf_token %}
+          <button type="submit" name="action" value="accept" class="btn btn-primary" style="flex:1; justify-content:center;">Accept Order</button>
+          <button type="submit" name="action" value="rejected" class="btn btn-danger" style="flex:1; justify-content:center; background:#dc2626; color:#fff;">Reject Order</button>
         </form>
-    {% endif %}
 
-{% endif %}
+      {% elif order.status == "WAITING_FOR_STOCK" %}
+        <div class="attention-section" style="margin-bottom:16px;">
+          <div class="attention-title">⚠️ Insufficient Stock</div>
+          <p style="font-size:13px; color:#92400e; margin-top:4px;">This order is waiting for stock. Add stock to fulfill this order.</p>
+        </div>
+        <form method="POST" action="{% url 'fulfill_waiting_order' order.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary w-full" style="justify-content:center;">Fulfill Order Now</button>
+        </form>
 
-<hr>
+      {% elif order.status == "PROCESSING" or order.status == "ACCEPTED" or order.status == "DELIVERED" %}
+        <p class="text-muted" style="margin-bottom:16px;">Stock has been allocated. Order is processing.</p>
+        {% if order.invoice %}
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:16px; display:flex; align-items:center; justify-content:space-between;">
+            <div>
+              <div style="font-size:12px; color:#166534;">Invoice Generated</div>
+              <div style="font-size:16px; font-weight:700; color:#15803d;">#{{ order.invoice.invoice_number }}</div>
+            </div>
+            <a href="{% url 'invoice_detail' order.invoice.id %}" class="btn btn-success btn-sm">View Invoice</a>
+          </div>
+        {% else %}
+          <form method="POST" action="{% url 'genrate_invoice' order.id %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success w-full" style="justify-content:center;">Generate Invoice</button>
+          </form>
+        {% endif %}
 
-<h2>Order Information</h2>
+      {% elif order.status == "REJECTED" %}
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:16px; color:#991b1b; font-weight:600;">
+          ❌ This order was rejected.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
 
-<p>
-    <strong>Status:</strong>
-    {{ order.get_status_display }}
-</p>
-
-<p>
-    <strong>Order Date:</strong>
-    {{ order.order_date }}
-</p>
-
-{% if order.notes %}
-
-<p>
-    <strong>Retailer Notes:</strong>
-    {{ order.notes }}
-</p>
-
-{% endif %}
-
-<hr>
-
-<h2>Products</h2>
-
-<table border="1" cellpadding="10">
-
-    <thead>
+<!-- Products Table -->
+<div class="card" style="margin-top:24px;">
+  <div class="card-header">
+    <span class="card-title">Ordered Items</span>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Quantity</th>
-            <th>Price Per Unit</th>
-            <th>Total</th>
+          <th>Product Name</th>
+          <th>SKU</th>
+          <th>Quantity</th>
+          <th>Price / Unit</th>
+          <th>Total Price</th>
         </tr>
-    </thead>
-
-    <tbody>
-
+      </thead>
+      <tbody>
         {% for item in order.items.all %}
-
         <tr>
-
-            <td>
-                {{ item.product.name }}
-            </td>
-
-            <td>
-                {{ item.product.sku }}
-            </td>
-
-            <td>
-                {{ item.quantity }}
-            </td>
-
-            <td>
-                ₹{{ item.price_per_unit }}
-            </td>
-
-            <td>
-                ₹{{ item.total_price }}
-            </td>
-
+          <td class="text-bold">{{ item.product.name }}</td>
+          <td><code>{{ item.product.sku }}</code></td>
+          <td>{{ item.quantity }}</td>
+          <td>₹{{ item.price_per_unit }}</td>
+          <td class="text-bold" style="color:#111827;">₹{{ item.total_price }}</td>
         </tr>
-
         {% endfor %}
-
-    </tbody>
-
-</table>
-
-<hr>
-
-{% if order.status == "PENDING" %}
-
-    <h2>Order Action</h2>
-
-    <form method="POST">
-        {% csrf_token %}
-
-        <button
-            type="submit"
-            name="action"
-            value="accept"
-        >
-            Accept Order
-        </button>
-
-        <button
-            type="submit"
-            name="action"
-            value="reject"
-        >
-            Reject Order
-        </button>
-
-    </form>
-
-{% else %}
-
-    <p>
-        This order has already been processed.
-    </p>
-
-{% endif %}
-
-{% if order.status == "WAITING_FOR_STOCK" %}
-
-    <hr>
-
-    <h3>Order is waiting for stock</h3>
-
-    <p>
-        This order has been accepted but could not be fulfilled
-        because sufficient stock was not available.
-    </p>
-
-    <form method="POST"
-          action="{% url 'fulfill_waiting_order' order.id %}">
-
-        {% csrf_token %}
-
-        <button type="submit">
-            Fulfill Order
-        </button>
-
-    </form>
-
-{% elif order.status == "PROCESSING" %}
-
-    <p>
-        <strong>
-            Stock has been transferred and the order is being processed.
-        </strong>
-    </p>
-
-{% elif order.status == "REJECTED" %}
-
-    <p>
-        <strong>
-            This order was rejected.
-        </strong>
-    </p>
-
-{% endif %}
-
-<br>    
-
-<a href="{% url 'wholesaler_orders' %}">
-    Back to Orders
-</a>
-
-</body>
-</html>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

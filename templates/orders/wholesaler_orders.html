@@ -1,69 +1,65 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Incoming Orders</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Incoming Orders{% endblock %}
 
-<h1>Incoming Orders</h1>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Incoming Retailer Orders</h1>
+    <p class="page-subtitle">Review, accept, process, and generate invoices for retailer purchase orders.</p>
+  </div>
+</div>
 
-{% if orders %}
-
-    {% for order in orders %}
-
-        <div>
-
-            <h2>
-                Order #{{ order.id }}
-            </h2>
-
-            <p>
-                <strong>Retailer:</strong>
-                {{ order.retailer.shop_name }}
-            </p>
-
-            <p>
-                <strong>Owner:</strong>
-                {{ order.retailer.owner_name }}
-            </p>
-
-            <p>
-                <strong>Phone:</strong>
-                {{ order.retailer.phone }}
-            </p>
-
-            <p>
-                <strong>Status:</strong>
-                {{ order.get_status_display }}
-            </p>
-
-            <p>
-                <strong>Order Date:</strong>
-                {{ order.order_date }}
-            </p>
-
-            <a href="{% url 'wholesaler_order_detail' order.id %}">
-                View Order
-            </a>
-
-        </div>
-
-        <hr>
-
-    {% endfor %}
-
-{% else %}
-
-    <p>No orders received yet.</p>
-
-{% endif %}
-
-<br>
-
-<a href="{% url 'dashboard' %}">
-    Back to Dashboard
-</a>
-
-</body>
-</html>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Retailer Shop</th>
+          <th>Owner Name</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Order Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr class="table-row-link" data-href="{% url 'wholesaler_order_detail' order.id %}">
+          <td class="text-bold">#{{ order.id }}</td>
+          <td class="text-bold">{{ order.retailer.shop_name }}</td>
+          <td>{{ order.retailer.owner_name }}</td>
+          <td>{{ order.retailer.phone|default:"—" }}</td>
+          <td>
+            {% if order.status == 'PENDING' %}
+              <span class="badge badge-amber">Pending</span>
+            {% elif order.status == 'ACCEPTED' %}
+              <span class="badge badge-blue">Accepted</span>
+            {% elif order.status == 'PROCESSING' %}
+              <span class="badge badge-blue">Processing</span>
+            {% elif order.status == 'DELIVERED' %}
+              <span class="badge badge-green">Delivered</span>
+            {% elif order.status == 'REJECTED' %}
+              <span class="badge badge-red">Rejected</span>
+            {% elif order.status == 'WAITING_FOR_STOCK' %}
+              <span class="badge badge-gray">Waiting Stock</span>
+            {% else %}
+              <span class="badge badge-gray">{{ order.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ order.order_date|date:"d M Y, h:i A" }}</td>
+          <td>
+            <a href="{% url 'wholesaler_order_detail' order.id %}" class="btn btn-ghost btn-sm">View Details</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted" style="padding: 32px;">No incoming orders received yet</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

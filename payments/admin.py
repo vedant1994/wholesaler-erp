@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Payment, LedgerEntry
+from .models import Payment, LedgerEntry, CustomerPayment
 
 # Register your models here.
 
@@ -51,4 +51,15 @@ class LedgerEntryAdmin(admin.ModelAdmin):
         "invoice__invoice_number",
     )
 
-
+@admin.register(CustomerPayment)
+class CustomerPaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "invoice",
+        "amount",
+        "payment_method",
+        "payment_date",
+        "reference_number",
+    )
+    list_filter = ("payment_method", "payment_date",)
+    search_fields = ("invoice__invoice_number", "reference_number",)

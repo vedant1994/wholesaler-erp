@@ -1,50 +1,44 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Wholesalers</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Supplier Wholesalers{% endblock %}
 
-<h1>My Wholesalers</h1>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Wholesaler Directory</h1>
+    <p class="page-subtitle">Select a registered wholesaler partner to browse catalog and place orders.</p>
+  </div>
+</div>
 
-{% if wholesalers %}
-
-    {% for wholesaler in wholesalers %}
-
-        <div>
-            <h2>{{ wholesaler.business_name }}</h2>
-
-            <p>
-                Phone: {{ wholesaler.phone }}
-            </p>
-
-            <p>
-                Address: {{ wholesaler.address }}
-            </p>
-
-            <a href="{% url 'wholesaler_products' wholesaler.id %}">
-                View Products
-            </a>
+<div class="stats-grid">
+  {% for wholesaler in wholesalers %}
+  <div class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px;">
+          {{ wholesaler.business_name|first|upper }}
         </div>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0;">{{ wholesaler.business_name }}</h2>
+          <span style="font-size: 12px; color: #6b7280;">GST: {{ wholesaler.gst_number|default:"Not set" }}</span>
+        </div>
+      </div>
 
-        <hr>
+      <div style="font-size: 13px; color: #4b5563; margin-bottom: 16px; line-height: 1.5;">
+        <p style="margin-bottom: 4px;">📍 {{ wholesaler.address|default:"Location not set" }}{% if wholesaler.city %}, {{ wholesaler.city }}{% endif %}</p>
+        <p>📞 {{ wholesaler.phone|default:"Phone not provided" }}</p>
+      </div>
+    </div>
 
-    {% endfor %}
-
-{% else %}
-
-    <p>
-        You are not connected to any wholesaler yet.
-    </p>
-
-{% endif %}
-
-<br>
-
-<a href="{% url 'dashboard' %}">
-    Back to Dashboard
-</a>
-
-</body>
-</html>
+    <a href="{% url 'wholesaler_products' wholesaler.id %}" class="btn btn-primary w-full" style="justify-content: center; margin-top: 12px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Browse Products
+    </a>
+  </div>
+  {% empty %}
+  <div class="card" style="grid-column: 1 / -1; padding: 48px; text-align: center;">
+    <p class="text-muted">You are not connected to any wholesaler partners yet.</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

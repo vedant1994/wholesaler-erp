@@ -16,14 +16,25 @@ urlpatterns = [
     ),
 
     path(
+        "<int:invoice_id>/",
+        views.invoice_detail
+    ),
+
+
+    path(
         "invoices/",
         views.invoice_list,
         name="invoice_list"
     ),
 
     path(
-    "invoice/<int:invoice_id>/pdf/",
-    views.invoice_pdf,
-    name="invoice_pdf"
-),
-]
+        "invoice/<int:invoice_id>/pdf/",
+        views.invoice_pdf,
+        name="invoice_pdf"
+    ),
+    path(
+        "customer-invoices/",
+        views.customer_invoices_view,
+        name="customer_invoices"
+    ),
+]

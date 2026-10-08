@@ -1,104 +1,120 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Order #{{ order.id }}</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Order #{{ order.id }} Details{% endblock %}
 
-<h1>Order #{{ order.id }}</h1>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="breadcrumb">
+      <a href="{% url 'retailer_orders' %}">My Orders</a>
+      <span>/</span>
+      <span class="current">Order #{{ order.id }}</span>
+    </div>
+    <h1 class="page-title">Purchase Order #{{ order.id }}</h1>
+    <p class="page-subtitle">Submitted on {{ order.order_date|date:"d M Y, h:i A" }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'retailer_orders' %}" class="btn btn-secondary">Back to My Orders</a>
+  </div>
+</div>
 
-<hr>
+<div class="grid-2">
+  <!-- Wholesaler Details Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Supplier Information</span>
+      <span class="badge 
+        {% if order.status == 'PENDING' %}badge-amber
+        {% elif order.status == 'ACCEPTED' %}badge-blue
+        {% elif order.status == 'PROCESSING' %}badge-blue
+        {% elif order.status == 'DELIVERED' %}badge-green
+        {% elif order.status == 'REJECTED' %}badge-red
+        {% else %}badge-gray{% endif %}">
+        {{ order.get_status_display }}
+      </span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid; grid-template-columns: 140px 1fr; gap:12px; font-size:14px;">
+        <div style="font-weight:600; color:#6b7280;">Wholesaler:</div>
+        <div style="font-weight:700; color:#111827;">{{ order.wholesaler.business_name }}</div>
 
-<h2>Order Information</h2>
+        <div style="font-weight:600; color:#6b7280;">Phone:</div>
+        <div>{{ order.wholesaler.phone|default:"—" }}</div>
 
-<p>
-    <strong>Wholesaler:</strong>
-    {{ order.wholesaler.business_name }}
-</p>
+        <div style="font-weight:600; color:#6b7280;">Address:</div>
+        <div>{{ order.wholesaler.address|default:"—" }}</div>
 
-<p>
-    <strong>Status:</strong>
-    {{ order.get_status_display }}
-</p>
+        {% if order.notes %}
+        <div style="font-weight:600; color:#6b7280;">Order Notes:</div>
+        <div style="background:#f9fafb; padding:8px 12px; border-radius:6px; font-size:13px; font-style:italic; color:#374151;">"{{ order.notes }}"</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 
-<p>
-    <strong>Order Date:</strong>
-    {{ order.order_date }}
-</p>
+  <!-- Status Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Order Status</span>
+    </div>
+    <div class="card-body">
+      {% if order.status == "PENDING" %}
+        <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:16px; color:#92400e;">
+          <strong>⏳ Pending Approval</strong>
+          <p style="font-size:13px; margin-top:4px;">Your order has been sent to {{ order.wholesaler.business_name }} and is awaiting review.</p>
+        </div>
+      {% elif order.status == "ACCEPTED" or order.status == "PROCESSING" %}
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:16px; color:#1e40af;">
+          <strong>✅ Accepted & Processing</strong>
+          <p style="font-size:13px; margin-top:4px;">Your order was accepted by {{ order.wholesaler.business_name }} and stock has been reserved.</p>
+        </div>
+      {% elif order.status == "DELIVERED" %}
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:16px; color:#166534;">
+          <strong>🎉 Delivered</strong>
+          <p style="font-size:13px; margin-top:4px;">Order has been delivered.</p>
+        </div>
+      {% elif order.status == "REJECTED" %}
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:16px; color:#991b1b;">
+          <strong>❌ Rejected</strong>
+          <p style="font-size:13px; margin-top:4px;">This order was rejected by the wholesaler.</p>
+        </div>
+      {% else %}
+        <div style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:16px;">
+          <strong>Status: {{ order.get_status_display }}</strong>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
 
-{% if order.notes %}
-
-<p>
-    <strong>Notes:</strong>
-    {{ order.notes }}
-</p>
-
-{% endif %}
-
-<hr>
-
-<h2>Products</h2>
-
-<table border="1" cellpadding="10">
-
-    <thead>
-
+<!-- Ordered Items Table -->
+<div class="card" style="margin-top:24px;">
+  <div class="card-header">
+    <span class="card-title">Ordered Products</span>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Quantity</th>
-            <th>Price Per Unit</th>
-            <th>Total</th>
+          <th>Product Name</th>
+          <th>SKU</th>
+          <th>Quantity</th>
+          <th>Price / Unit</th>
+          <th>Total Amount</th>
         </tr>
-
-    </thead>
-
-    <tbody>
-
+      </thead>
+      <tbody>
         {% for item in order.items.all %}
-
         <tr>
-
-            <td>
-                {{ item.product.name }}
-            </td>
-
-            <td>
-                {{ item.product.sku }}
-            </td>
-
-            <td>
-                {{ item.quantity }}
-            </td>
-
-            <td>
-                ₹{{ item.price_per_unit }}
-            </td>
-
-            <td>
-                ₹{{ item.total_price }}
-            </td>
-
+          <td class="text-bold">{{ item.product.name }}</td>
+          <td><code>{{ item.product.sku }}</code></td>
+          <td>{{ item.quantity }}</td>
+          <td>₹{{ item.price_per_unit }}</td>
+          <td class="text-bold" style="color:#111827;">₹{{ item.total_price }}</td>
         </tr>
-
         {% endfor %}
-
-    </tbody>
-
-</table>
-
-<br>
-
-<a href="{% url 'my_orders' %}">
-    Back to My Orders
-</a>
-
-<br><br>
-
-<a href="{% url 'dashboard' %}">
-    Back to Dashboard
-</a>
-
-</body>
-</html>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

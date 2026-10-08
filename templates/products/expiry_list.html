@@ -1,90 +1,62 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Expiry Alerts</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Expiry Alerts{% endblock %}
 
-<h1>Expiry Alerts</h1>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Expiry Alerts</h1>
+    <p class="page-subtitle">Batches that have expired or are expiring within 30 days.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'add_stock' %}" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Stock Batch
+    </a>
+    <a href="{% url 'stock_list' %}" class="btn btn-secondary">All Stock</a>
+  </div>
+</div>
 
-<a href="{% url 'add_stock' %}">Add New Stock</a>
-|
-<a href="{% url 'stock_list' %}">Back to Stock</a>
-
-<br><br>
-
-{% if stocks %}
-
-<table border="1" cellpadding="10">
-
-    <thead>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Batch Number</th>
-            <th>Quantity</th>
-            <th>Expiry Date</th>
-            <th>Status</th>
-            <th>Action</th>
+          <th>Product</th>
+          <th>SKU</th>
+          <th>Batch Number</th>
+          <th>Quantity</th>
+          <th>Expiry Date</th>
+          <th>Status</th>
+          <th>Action</th>
         </tr>
-    </thead>
-
-    <tbody>
-
+      </thead>
+      <tbody>
         {% for stock in stocks %}
-
         <tr>
-
-            <td>
-                {{ stock.product.name }}
-            </td>
-
-            <td>
-                {{ stock.product.sku }}
-            </td>
-
-            <td>
-                {{ stock.batch_number }}
-            </td>
-
-            <td>
-                {{ stock.quantity }}
-            </td>
-
-            <td>
-                {{ stock.expiry_date }}
-            </td>
-
-            <td>
-                {{ stock.expiry_status }}
-            </td>
-
-            <td>
-                <a href="{% url 'edit_stock' stock.id %}">
-                    Update Stock
-                </a>
-            </td>
-
+          <td class="text-bold">{{ stock.product.name }}</td>
+          <td><code>{{ stock.product.sku }}</code></td>
+          <td>{{ stock.batch_number|default:"—" }}</td>
+          <td>{{ stock.quantity }} {{ stock.product.unit|default:"units" }}</td>
+          <td>{{ stock.expiry_date|date:"d M Y" }}</td>
+          <td>
+            {% if stock.expiry_status == 'EXPIRED' %}
+              <span class="badge badge-red">EXPIRED</span>
+            {% else %}
+              <span class="badge badge-amber">EXPIRING SOON</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'edit_stock' stock.id %}" class="btn btn-secondary btn-sm">Update Batch</a>
+          </td>
         </tr>
-
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted" style="padding: 32px;">No expired or soon-to-expire stock found 🎉</td>
+        </tr>
         {% endfor %}
-
-    </tbody>
-
-</table>
-
-{% else %}
-
-<p>No expired or soon-to-expire stock found.</p>
-
-{% endif %}
-
-<br>
-
-<a href="{% url 'dashboard' %}">
-    Back to Dashboard
-</a>
-
-</body>
-</html>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

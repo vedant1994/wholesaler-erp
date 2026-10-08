@@ -1,56 +1,227 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Wholesaler Dashboard</title>
-</head>
+{% block title %}Dashboard{% endblock %}
 
-<body>
+{% block content %}
 
-    <h1>Wholesaler Dashboard</h1>
-
-    <h2>
-        Welcome, {{ wholesaler.business_name }}
-    </h2>
-
-    <p>
-        Phone: {{ wholesaler.phone }}
-    </p>
-
-    <p>
-        City: {{ wholesaler.city }}
-    </p>
-
-    <p>
-        GST: {{ wholesaler.gst_number }}
-    </p>
-
-    <hr>
-
-    <h3>Wholesaler Features</h3>
-
-    <a href="{% url 'product_list' %}">
-        Products
+<!-- Greeting Header -->
+<div class="page-header" style="margin-bottom: 20px;">
+  <div class="page-header-left">
+    <p class="text-muted" style="font-size:13px; margin-bottom:4px;">Good day 👋</p>
+    <h1 class="page-title">{{ wholesaler.business_name }}</h1>
+    <p class="page-subtitle">{{ wholesaler.city }}, {{ wholesaler.state }} &nbsp;·&nbsp; GST: {{ wholesaler.gst_number|default:"Not set" }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'add_product' %}" class="btn btn-secondary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Add Product
     </a>
-
-    <br><br>
-
-    <a href="{% url 'stock_list' %}">
-        Stock
+    <a href="{% url 'invoice_list' %}" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Create Invoice
     </a>
+  </div>
+</div>
 
-    <br><br>
+<!-- Attention Alerts -->
+{% if low_stock_count or expiring_count or pending_orders_count %}
+<div class="attention-section">
+  <div class="attention-title">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Needs Attention
+  </div>
+  <div class="attention-list">
+    {% if pending_orders_count %}
+      <a href="{% url 'wholesaler_orders' %}" class="attention-item">
+        📋 {{ pending_orders_count }} pending order{{ pending_orders_count|pluralize }}
+      </a>
+    {% endif %}
+    {% if low_stock_count %}
+      <a href="{% url 'low_stock_list' %}" class="attention-item">
+        📦 {{ low_stock_count }} product{{ low_stock_count|pluralize }} below minimum stock
+      </a>
+    {% endif %}
+    {% if expiring_count %}
+      <a href="{% url 'expiry_list' %}" class="attention-item">
+        ⏰ {{ expiring_count }} batch{{ expiring_count|pluralize:"es" }} expiring soon
+      </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
 
-    <a href="{% url 'wholesaler_orders' %}">
-        Incoming Orders
-    </a>
+<!-- Quick Actions -->
+<div class="quick-actions">
+  <a href="{% url 'wholesaler_orders' %}" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+    Review Orders
+  </a>
+  <a href="{% url 'add_product' %}" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Product
+  </a>
+  <a href="{% url 'add_stock' %}" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Add Stock
+  </a>
+  <a href="/payments/" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Record Payment
+  </a>
+  <a href="/reports/" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    View Reports
+  </a>
+</div>
 
-    <br><br>
+<!-- Stat Cards -->
+<div class="stats-grid">
+  <a href="/payments/ledger/" class="stat-card">
+    <div class="stat-icon blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Total Outstanding</div>
+      <div class="stat-value">₹{{ total_outstanding|default:"0" }}</div>
+      <div class="stat-sub">Across all retailers</div>
+    </div>
+  </a>
 
-    <a href="{% url 'logout' %}">
-        Logout
-    </a>
+  <a href="{% url 'wholesaler_orders' %}" class="stat-card">
+    <div class="stat-icon amber">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Pending Orders</div>
+      <div class="stat-value">{{ pending_orders_count|default:"0" }}</div>
+      <div class="stat-sub">Awaiting review</div>
+    </div>
+  </a>
 
-</body>
+  <a href="{% url 'product_list' %}" class="stat-card">
+    <div class="stat-icon purple">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Total Products</div>
+      <div class="stat-value">{{ total_products|default:"0" }}</div>
+      <div class="stat-sub">In your catalog</div>
+    </div>
+  </a>
 
-</html>
+  <a href="{% url 'low_stock_list' %}" class="stat-card">
+    <div class="stat-icon red">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Low Stock Items</div>
+      <div class="stat-value">{{ low_stock_count|default:"0" }}</div>
+      <div class="stat-sub">Need restocking</div>
+    </div>
+  </a>
+
+  <a href="{% url 'expiry_list' %}" class="stat-card">
+    <div class="stat-icon amber">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Expiring Soon</div>
+      <div class="stat-value">{{ expiring_count|default:"0" }}</div>
+      <div class="stat-sub">Within 30 days</div>
+    </div>
+  </a>
+
+  <a href="/accounts/retailers/" class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Active Retailers</div>
+      <div class="stat-value">{{ total_retailers|default:"0" }}</div>
+      <div class="stat-sub">Connected to you</div>
+    </div>
+  </a>
+</div>
+
+<!-- Recent Activity Grid -->
+<div class="grid-2" style="margin-top: 8px;">
+  <!-- Recent Orders -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent Orders</span>
+      <a href="{% url 'wholesaler_orders' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Retailer</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr class="table-row-link" data-href="{% url 'wholesaler_order_detail' order.id %}">
+            <td class="text-bold">#{{ order.id }}</td>
+            <td>{{ order.retailer.shop_name }}</td>
+            <td>
+              {% if order.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+              {% elif order.status == 'ACCEPTED' %}<span class="badge badge-blue">Accepted</span>
+              {% elif order.status == 'PROCESSING' %}<span class="badge badge-blue">Processing</span>
+              {% elif order.status == 'DELIVERED' %}<span class="badge badge-green">Delivered</span>
+              {% elif order.status == 'REJECTED' %}<span class="badge badge-red">Rejected</span>
+              {% elif order.status == 'WAITING_FOR_STOCK' %}<span class="badge badge-gray">Waiting Stock</span>
+              {% else %}<span class="badge badge-gray">{{ order.status }}</span>{% endif %}
+            </td>
+            <td class="text-muted">{{ order.order_date|date:"d M" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted" style="padding:32px;">No recent orders</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Invoices -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent Invoices</span>
+      <a href="{% url 'invoice_list' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Retailer</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for invoice in recent_invoices %}
+          <tr class="table-row-link" data-href="{% url 'invoice_detail' invoice.id %}">
+
+            <td class="text-bold">{{ invoice.invoice_number }}</td>
+            <td>{{ invoice.retailer.shop_name }}</td>
+            <td>₹{{ invoice.grand_total }}</td>
+            <td>
+              {% if invoice.status == 'PAID' %}<span class="badge badge-green">Paid</span>
+              {% elif invoice.status == 'PARTIALLY_PAID' %}<span class="badge badge-amber">Partial</span>
+              {% elif invoice.status == 'UNPAID' %}<span class="badge badge-red">Unpaid</span>
+              {% else %}<span class="badge badge-gray">{{ invoice.status }}</span>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted" style="padding:32px;">No recent invoices</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

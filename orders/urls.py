@@ -27,6 +27,13 @@ urlpatterns = [
     ),
 
     path(
+        "retailer/orders/",
+        my_orders,
+        name="retailer_orders"
+    ),
+
+
+    path(
         "my-orders/<int:order_id>/",
         order_detail,
         name="order_detail"

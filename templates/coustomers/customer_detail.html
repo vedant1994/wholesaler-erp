@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">{{ customer.name }}</h1>
+    <p class="page-subtitle">Customer Profile & Contact Overview</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'edit_customer' customer.id %}" class="btn btn-secondary">Edit Customer</a>
+    <a href="{% url 'customer_list' %}" class="btn btn-ghost">Back to Customers</a>
+  </div>
+</div>
+
+<div class="card" style="max-width: 600px; padding: 28px;">
+  <div style="display: grid; grid-template-columns: 140px 1fr; gap: 16px; row-gap: 20px;">
+    <div style="font-weight: 600; color: #6b7280;">Full Name</div>
+    <div style="font-weight: 600; color: #111827;">{{ customer.name }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Phone Number</div>
+    <div>{{ customer.phone }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Email Address</div>
+    <div>{{ customer.email|default:"Not specified" }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Address</div>
+    <div>{{ customer.address|default:"Not specified" }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">GST Number</div>
+    <div>{{ customer.gst_number|default:"Not set" }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Retailer Shop</div>
+    <div>{{ customer.retailer.shop_name }}</div>
+
+    <div style="font-weight: 600; color: #6b7280;">Joined Date</div>
+    <div class="text-muted">{{ customer.created_at|date:"d M Y, h:i A" }}</div>
+  </div>
+</div>
+{% endblock %}

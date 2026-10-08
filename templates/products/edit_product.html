@@ -1,29 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Product</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<h1>Edit Product</h1>
+{% block title %}Edit Product{% endblock %}
 
-<form method="POST">
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Edit Product: {{ product.name }}</h1>
+    <p class="page-subtitle">Update product specifications, category, or status.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'product_list' %}" class="btn btn-secondary">
+      Back to Products
+    </a>
+  </div>
+</div>
 
+<div class="card" style="max-width: 600px; margin: 0 auto; padding: 28px;">
+  <form method="POST" class="primary-form">
     {% csrf_token %}
+    
+    {% for field in form %}
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label class="form-label" for="{{ field.id_for_label }}" style="font-weight:600; display:block; margin-bottom:6px;">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+          <p class="form-error" style="color:#dc2626; font-size:12px; margin-top:4px;">{{ field.errors.0 }}</p>
+        {% endif %}
+      </div>
+    {% endfor %}
 
-    {{ form.as_p }}
-
-    <button type="submit">
-        Update Product
-    </button>
-
-</form>
-
-<br>
-
-<a href="{% url 'product_list' %}">
-    Back to Products
-</a>
-
-</body>
-</html>
+    <div style="display:flex; gap:12px; margin-top:24px; justify-content:flex-end;">
+      <a href="{% url 'product_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">Update Product</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

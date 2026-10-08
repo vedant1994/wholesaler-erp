@@ -1,32 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Delete Stock</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<h1>Delete Stock</h1>
+{% block title %}Delete Stock{% endblock %}
 
-<p>
-    Are you sure you want to delete
-    <strong>{{ stock.name }}</strong>?
-</p>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Delete Stock Batch</h1>
+    <p class="page-subtitle">Confirm batch removal from inventory records.</p>
+  </div>
+</div>
 
-<form method="POST">
+<div class="card" style="max-width: 500px; margin: 40px auto; padding: 32px; text-align: center;">
+  <div style="width: 56px; height: 56px; background: #fef2f2; color: #dc2626; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    </svg>
+  </div>
+  <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Delete Stock Batch?</h2>
+  <p class="text-muted" style="margin-bottom: 24px;">Are you sure you want to delete batch <strong>#{{ stock.id }}</strong> for product <strong>"{{ stock.product.name }}"</strong>?</p>
 
+  <form method="POST">
     {% csrf_token %}
-
-    <button type="submit">
-        Yes, Delete
-    </button>
-
-</form>
-
-<br>
-
-<a href="{% url 'stock_list' %}">
-    Cancel
-</a>
-
-</body>
-</html>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a href="{% url 'stock_list' %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-danger" style="background: #dc2626; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Delete Batch</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

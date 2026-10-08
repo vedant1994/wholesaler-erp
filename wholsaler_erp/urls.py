@@ -1,22 +1,10 @@
 """
 URL configuration for wholsaler_erp project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import render
+from accounts.views import reports_view
 
 def home(request):
     return render(request, 'home.html')
@@ -24,9 +12,12 @@ def home(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),
+    path('reports/', reports_view, name='reports'),
     path('accounts/', include("accounts.urls")),
     path('products/', include("products.urls")),
     path('orders/', include("orders.urls")),
     path('billing/', include("billing.urls")),
     path('payments/', include("payments.urls")),
+    path('coustomers/', include("coustomers.urls")),
+    path('shipping/', include("shipping.urls")),
 ]

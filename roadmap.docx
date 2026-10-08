@@ -1,0 +1,2312 @@
+Django Wholesaler–Retailer ERP — Complete Project Knowledge
+1. What is this project?
+
+This project is a B2B Wholesale–Retailer Enterprise Resource Planning (ERP) system.
+
+Its purpose is to digitally manage the business relationship between:
+
+                 WHOLESALER
+                     │
+        ┌────────────┼────────────┐
+        │            │            │
+     Products      Orders       Invoices
+        │            │            │
+      Stock       Payments      Ledger
+        │            │            │
+        └────────────┼────────────┘
+                     │
+                  RETAILER
+                     │
+             ┌───────┼────────┐
+             │       │        │
+          Stock    Customers  Sales
+             │       │        │
+          Orders   Invoices  Payments
+
+Instead of managing everything through:
+
+Excel
+WhatsApp
+paper bills
+manual stock registers
+manual payment calculations
+separate customer records
+
+the ERP provides one centralized system.
+
+2. Real-world business scenario
+
+Imagine a wholesaler named:
+
+ABC Pharma Wholesale
+
+and a retailer:
+
+Sayam Medical Store
+
+The wholesaler has:
+
+Product:
+Hing
+
+SKU:
+HING0001
+
+Stock:
+500 units
+
+Selling Price:
+₹190
+
+MRP:
+₹220
+
+The retailer wants:
+
+220 units
+
+The retailer places an order.
+
+The system checks:
+
+Requested quantity = 220
+Available quantity = 500
+
+Therefore:
+
+500 - 220 = 280
+
+Wholesaler stock becomes:
+
+280
+
+Retailer's stock becomes:
+
+220
+
+The system then generates:
+
+Order
+   ↓
+Invoice
+   ↓
+Payment
+   ↓
+Ledger
+
+If the retailer pays only ₹10,000:
+
+Invoice = ₹41,800
+Paid    = ₹10,000
+------------------
+Due     = ₹31,800
+
+The ledger records the outstanding amount.
+
+This is the core business flow of the application.
+
+3. Who uses the system?
+
+There are primarily two business roles.
+
+3.1 Wholesaler
+
+A wholesaler can:
+
+register
+maintain business profile
+connect with retailers
+create products
+manage stock
+monitor low stock
+monitor expiry
+receive retailer orders
+accept/reject orders
+fulfill waiting orders
+generate invoices
+receive payments
+maintain retailer ledger
+track outstanding credit
+manage shipments
+view reports
+eventually expose APIs
+4. Retailer
+
+A retailer can:
+
+register
+maintain shop profile
+connect with wholesalers
+browse wholesalers
+browse products
+view available stock
+place orders
+view order history
+receive stock from wholesalers
+maintain own stock
+manage customers
+create customer invoices
+receive customer payments
+track customer outstanding amounts
+track shipments
+view business reports
+
+This is important:
+
+The retailer is not only a buyer.
+
+The retailer becomes a small business management user inside the same ERP.
+
+5. Complete architecture
+
+At a high level:
+
+                     Browser
+                        │
+                        ▼
+                 Django URLs
+                        │
+                        ▼
+                     Views
+                        │
+              ┌─────────┴─────────┐
+              │                   │
+             Forms             Services
+              │                   │
+              └─────────┬─────────┘
+                        │
+                        ▼
+                     Models
+                        │
+                        ▼
+                    Database
+
+Later the architecture becomes:
+
+Browser
+  │
+  ├── Django Web Application
+  │
+  └── REST API
+          │
+          ▼
+      DRF Layer
+          │
+          ▼
+     Business Services
+          │
+          ▼
+      PostgreSQL
+          │
+      ┌───┴────┐
+      │        │
+    Redis    Storage
+      │
+    Celery
+6. Django application structure
+
+Your project contains separate Django apps because each app represents a business responsibility.
+
+wholsaler_erp/
+│
+├── accounts/
+├── products/
+├── orders/
+├── billing/
+├── payments/
+├── customers/
+├── shipping/
+│
+├── templates/
+├── static/
+├── media/
+│
+├── wholsaler_erp/
+│
+└── manage.py
+
+The important principle is:
+
+One app should have a clear responsibility.
+
+For example:
+
+accounts → users and profiles
+
+products → products and inventory
+
+orders → ordering workflow
+
+billing → invoices
+
+payments → payments and ledger
+
+customers → retailer's customers
+
+shipping → delivery
+
+
+This makes the project easier to maintain and scale.
+
+PHASE 1 — Project Setup
+Goal
+
+Create a clean Django project with the correct foundation.
+
+You learn:
+
+Django project
+Django apps
+settings
+URLs
+templates
+static files
+media files
+database
+virtual environment
+configuration
+Project vs App
+
+This is an important interview question.
+
+Project
+
+The project is the overall Django application configuration.
+
+Example:
+
+wholsaler_erp/
+
+It contains:
+
+settings.py
+urls.py
+asgi.py
+wsgi.py
+App
+
+An app handles a particular business function.
+
+Example:
+
+products/
+orders/
+billing/
+
+Interview answer:
+
+A Django project is the complete application configuration, while a Django app is a modular component that handles a specific business functionality.
+
+PHASE 2 — Authentication & Profiles
+
+Now we need users.
+
+Django already provides:
+
+User
+
+But our business needs additional information.
+
+Therefore:
+
+User
+ │
+ ├── UserProfile
+ │
+ ├── WholesalerProfile
+ │
+ └── RetailerProfile
+Why not store everything inside User?
+
+Django's User contains things such as:
+
+username
+email
+password
+first_name
+last_name
+
+But wholesaler needs:
+
+business_name
+GST number
+phone
+address
+city
+state
+pincode
+
+Retailer needs:
+
+shop_name
+owner_name
+GST
+phone
+address
+city
+state
+pincode
+
+Therefore separate profile models are appropriate.
+
+UserProfile
+
+It determines:
+
+WHOLESALER
+
+or
+
+RETAILER
+
+Conceptually:
+
+User
+ ↓
+UserProfile
+ ↓
+Role
+
+The role controls what the user is allowed to do.
+
+Authentication vs Authorization
+
+Very important interview topic.
+
+Authentication
+
+Who are you?
+
+Example:
+
+username + password
+Authorization
+
+What are you allowed to do?
+
+Example:
+
+Retailer cannot access wholesaler orders.
+PHASE 3 — Wholesaler ↔ Retailer Relationship
+
+This is a major database-design concept.
+
+One wholesaler can have:
+
+Retailer A
+Retailer B
+Retailer C
+
+One retailer can work with:
+
+Wholesaler X
+Wholesaler Y
+Wholesaler Z
+
+Therefore:
+
+Many-to-Many
+
+relationship.
+
+Database concept:
+
+Wholesaler
+      │
+      │
+      ▼
+ Junction Table
+      ▲
+      │
+      │
+Retailer
+
+Django handles the intermediate table through:
+
+ManyToManyField
+Why Many-to-Many?
+
+Because:
+
+1 wholesaler → many retailers
+1 retailer → many wholesalers
+
+If you incorrectly use ForeignKey from retailer to wholesaler, one retailer could belong to only one wholesaler.
+
+That would not match the real business requirement.
+
+PHASE 4 — Product Management
+
+Now the wholesaler can create products.
+
+A product belongs to a wholesaler.
+
+Relationship:
+
+Wholesaler
+     │
+     ├── Product
+     ├── Product
+     └── Product
+
+Example:
+
+Product
+----------------
+Name: Hing
+SKU: HING0001
+Category: Grocery
+Unit: Kg
+Description: Asafoetida
+Why SKU?
+
+SKU means:
+
+Stock Keeping Unit.
+
+It uniquely identifies a product within the business.
+
+Example:
+
+HING0001
+RICE0001
+SUGAR0001
+
+It is useful for:
+
+searching
+inventory
+billing
+reports
+APIs
+barcode integration later
+Product vs Stock
+
+This distinction is extremely important.
+
+Product
+
+Describes what the item is.
+
+Hing
+SKU
+Category
+Unit
+Description
+Stock
+
+Describes how much you have and at what price.
+
+Quantity
+Purchase price
+Selling price
+MRP
+Batch
+Expiry
+Minimum stock
+
+Therefore:
+
+Product
+   │
+   └── Stock
+         │
+         ├── quantity
+         ├── price
+         ├── batch
+         └── expiry
+
+This is a very good interview design discussion.
+
+PHASE 5 — Stock Management
+
+Now we manage inventory.
+
+Example:
+
+Product = Hing
+
+Stock:
+Quantity = 500
+Purchase Price = ₹160
+Selling Price = ₹190
+MRP = ₹220
+
+Stock also contains:
+
+batch_number
+expiry_date
+minimum_stock
+Why batch number?
+
+Suppose:
+
+Batch A → 100 units → expires January
+Batch B → 200 units → expires March
+
+You need to know which stock was sold first.
+
+That becomes important for expiry management.
+
+Why minimum_stock?
+
+Suppose:
+
+Current stock = 20
+Minimum stock = 50
+
+Then:
+
+20 <= 50
+
+So the ERP identifies:
+
+Low Stock.
+
+This allows the business to reorder before stock runs out.
+
+PHASE 6 — Low Stock Detection
+
+The system automatically finds stock where:
+
+quantity <= minimum_stock
+
+Example:
+
+Product       Quantity    Minimum
+---------------------------------
+Hing             20         50
+Rice              8         20
+Sugar            100         50
+
+Result:
+
+Hing → Low
+Rice → Low
+Sugar → Normal
+
+This is not just a UI feature.
+
+It demonstrates:
+
+database filtering
+F() expressions
+business rules
+query optimization
+PHASE 7 — Expiry Management
+
+Some products expire.
+
+We classify stock as:
+
+Expired
+Expiring Soon
+Good
+No Expiry
+
+For example:
+
+Today = 8 Oct
+
+Expiry = 5 Oct
+→ EXPIRED
+
+Expiry = 20 Oct
+→ EXPIRING SOON
+
+Expiry = 15 Dec
+→ GOOD
+
+The system should prevent expired stock from being transferred.
+
+This becomes important during fulfillment.
+
+PHASE 8 — Search & Filters
+
+A real ERP cannot expect users to scroll through thousands of products.
+
+Therefore we support:
+
+Search
+
+By:
+
+Product name
+SKU
+Filter
+
+By:
+
+Category
+Stock status
+Expiry status
+
+Example:
+
+Search:
+hing
+
+returns:
+
+Hing
+Hing Powder
+Hing Premium
+
+This teaches:
+
+icontains
+Q()
+F()
+
+and query composition.
+
+PHASE 9 — Order Creation
+
+Now we enter the most important business workflow.
+
+Retailer selects:
+
+Wholesaler
+    ↓
+Product
+    ↓
+Quantity
+    ↓
+Notes
+
+Example:
+
+Retailer:
+Sayam Medical
+
+Wholesaler:
+ABC Wholesale
+
+Product:
+Hing
+
+Quantity:
+220
+
+The system creates:
+
+Order
+OrderItem
+Order vs OrderItem
+
+One order can contain multiple products.
+
+Example:
+
+Order #10
+
+Hing       220
+Sugar       50
+Rice        30
+
+Therefore:
+
+Order
+ │
+ ├── OrderItem
+ ├── OrderItem
+ └── OrderItem
+
+This is:
+
+One-to-Many
+Why not put product directly inside Order?
+
+Because one order can contain multiple products.
+
+Therefore:
+
+Order → OrderItems
+
+is the correct normalized design.
+
+Order Price Snapshot
+
+When an order is created, we store:
+
+price_per_unit
+total_price
+
+inside OrderItem.
+
+Why?
+
+Because prices can change later.
+
+Suppose:
+
+Today:
+Hing = ₹190
+
+Customer orders 100.
+
+Later:
+
+Hing = ₹210
+
+The original order should still represent:
+
+₹190 × 100
+
+This is called preserving a historical price snapshot.
+
+Very important in financial systems.
+
+PHASE 10 — Retailer Order Management
+
+Retailer can see:
+
+My Orders
+
+with:
+
+Order number
+Date
+Wholesaler
+Status
+Amount
+
+They can open an order to see:
+
+Products
+Quantity
+Price
+Total
+Status
+Notes
+Object-Level Authorization
+
+This is one of the most important security concepts in your project.
+
+Suppose:
+
+Retailer A
+
+tries to access:
+
+Order #500
+
+belonging to:
+
+Retailer B
+
+The application must reject it.
+
+Therefore we query:
+
+Order.objects.get(
+    id=order_id,
+    retailer=retailer
+)
+
+instead of:
+
+Order.objects.get(id=order_id)
+
+This prevents an IDOR-style authorization vulnerability.
+
+PHASE 11 — Wholesaler Order Management
+
+Wholesaler receives orders.
+
+Initial status:
+
+PENDING
+
+Wholesaler can:
+
+ACCEPT
+
+or:
+
+REJECT
+PHASE 12 — Stock Transfer
+
+After acceptance, stock becomes involved.
+
+The important business rule is:
+
+Placing an order does NOT immediately deduct wholesaler stock.
+
+Why?
+
+Because the wholesaler hasn't accepted/fulfilled it yet.
+
+So:
+
+Order Created
+      ↓
+PENDING
+      ↓
+Wholesaler Accepts
+      ↓
+Check Stock
+
+Only after fulfillment:
+
+Wholesaler Stock
+       ↓
+     Deduct
+       ↓
+Retailer Stock
+       ↑
+     Add
+Why transaction.atomic?
+
+Imagine:
+
+Wholesaler stock deducted
+
+but then:
+
+Retailer stock update fails
+
+You would have:
+
+Wholesaler: -220
+Retailer:   +0
+
+That is data corruption.
+
+With:
+
+transaction.atomic()
+
+the operation becomes:
+
+BEGIN
+   ↓
+Deduct stock
+   ↓
+Add retailer stock
+   ↓
+Update order
+   ↓
+COMMIT
+
+If anything fails:
+
+ROLLBACK
+
+Everything returns to its previous state.
+
+This is a major backend engineering concept.
+
+PHASE 13 — Waiting for Stock
+
+Suppose:
+
+Requested = 220
+Available = 100
+
+The order cannot be fulfilled.
+
+But we don't necessarily want to reject it.
+
+Instead:
+
+WAITING_FOR_STOCK
+
+This means:
+
+The wholesaler accepted the business request, but currently doesn't have sufficient inventory to fulfill it.
+
+Later:
+
+New stock arrives
+       ↓
+Stock = 300
+       ↓
+Fulfill waiting order
+
+This represents a real-world inventory workflow.
+
+PHASE 14 — Fulfill Waiting Orders
+
+When stock becomes available, wholesaler can click:
+
+Fulfill Order
+
+The service checks again.
+
+It must verify:
+
+Order status
+Stock quantity
+Expiry
+Product
+Retailer
+FIFO / FEFO concept
+
+Your implementation orders stock by:
+
+expiry_date
+created_at
+
+This is similar to FEFO:
+
+First Expired, First Out.
+
+For products with expiry dates, stock expiring sooner should generally be consumed first.
+
+Example:
+
+Batch A → expires Oct 15
+Batch B → expires Nov 20
+
+Fulfill from:
+
+Batch A first
+
+This reduces wastage.
+
+PHASE 15 — Invoice & Billing
+
+After actual fulfillment:
+
+Order
+  ↓
+Invoice
+
+Invoice contains:
+
+Invoice number
+Order
+Wholesaler
+Retailer
+Invoice date
+Subtotal
+Discount
+Tax
+Grand total
+Status
+Invoice Item
+
+An invoice can contain multiple products:
+
+Invoice
+ │
+ ├── InvoiceItem
+ ├── InvoiceItem
+ └── InvoiceItem
+
+Each item contains:
+
+Product
+Quantity
+Price
+Tax rate
+Tax amount
+Total
+Why Invoice is separate from Order?
+
+Because an order represents:
+
+What the customer requested.
+
+An invoice represents:
+
+What is financially owed.
+
+They are related but have different business meanings.
+
+For example:
+
+Order:
+220 units requested
+
+Invoice:
+220 units fulfilled
+₹41,800 payable
+Invoice Status
+
+Your system supports:
+
+UNPAID
+PARTIALLY_PAID
+PAID
+CANCELLED
+
+Example:
+
+Invoice = ₹41,800
+
+No payment
+→ UNPAID
+
+₹10,000 paid
+→ PARTIALLY_PAID
+
+₹31,800 more
+→ PAID
+GST / Tax
+
+Your invoice calculates item-level tax.
+
+Example:
+
+Product amount = ₹10,000
+GST = 5%
+
+Tax = ₹500
+
+Total = ₹10,500
+
+The system sums all item tax amounts.
+
+Invoice Number
+
+Instead of exposing only database ID:
+
+1
+
+we generate:
+
+INV-2026-000001
+
+This is more appropriate for a business application.
+
+PHASE 16 — Payment Management
+
+After invoice generation, retailer can make payments.
+
+Payment contains:
+
+Invoice
+Amount
+Payment Method
+Reference Number
+Notes
+
+Payment methods could include:
+
+Cash
+UPI
+Bank Transfer
+Cheque
+Card
+Partial Payments
+
+Suppose:
+
+Invoice = ₹41,800
+
+Payment:
+
+₹10,000
+
+Then:
+
+Paid = ₹10,000
+Outstanding = ₹31,800
+
+Invoice:
+
+PARTIALLY_PAID
+
+Then another:
+
+₹31,800
+
+Now:
+
+Paid = ₹41,800
+Outstanding = ₹0
+
+Invoice:
+
+PAID
+Overpayment Protection
+
+The service checks:
+
+payment <= outstanding
+
+So:
+
+Outstanding = ₹31,800
+Payment = ₹40,000
+
+is rejected.
+
+This is important because financial systems should never silently accept invalid payments.
+
+Transaction Safety
+
+Payment creation performs several operations:
+
+Create Payment
+      ↓
+Create Ledger Entry
+      ↓
+Update Invoice Status
+
+These should succeed together.
+
+Therefore:
+
+@transaction.atomic
+
+is important.
+
+If ledger creation fails:
+
+Payment should also rollback.
+PHASE 17 — Outstanding / Credit Ledger
+
+This is where your ERP becomes much more like a real financial system.
+
+Think of the ledger as:
+
+A chronological financial record between a wholesaler and retailer.
+
+Debit
+
+When wholesaler generates an invoice:
+
+Retailer owes money
+
+Therefore:
+
+DEBIT
+
+Example:
+
+Invoice = ₹41,800
+
+Ledger:
+DEBIT ₹41,800
+Credit
+
+When retailer makes a payment:
+
+Retailer's liability decreases.
+
+Therefore:
+
+CREDIT
+
+Example:
+
+Payment = ₹10,000
+
+Ledger:
+CREDIT ₹10,000
+Outstanding calculation
+
+The system calculates:
+
+Outstanding
+=
+Total Debit - Total Credit
+
+Example:
+
+Debit:
+₹41,800
+
+Credit:
+₹10,000
+
+Outstanding:
+₹31,800
+Multiple invoices
+
+Suppose retailer has:
+
+Invoice 1 = ₹40,000
+Invoice 2 = ₹20,000
+Invoice 3 = ₹15,000
+
+Total debit:
+
+₹75,000
+
+Payments:
+
+₹20,000
+
+Outstanding:
+
+₹55,000
+
+This allows the wholesaler to understand:
+
+How much money this retailer currently owes the business.
+
+Why LedgerEntry instead of calculating only from Invoice?
+
+Because a ledger provides a financial history.
+
+Example:
+
+Date        Type       Amount
+--------------------------------
+Oct 1       DEBIT      ₹40,000
+Oct 3       CREDIT     ₹10,000
+Oct 7       DEBIT      ₹20,000
+Oct 8       CREDIT     ₹15,000
+
+Now the business can audit the account.
+
+Phase 18 — Retailer Customer Management
+
+Now we move to the retailer's side.
+
+Remember:
+
+Wholesaler
+     ↓
+Retailer
+     ↓
+Retailer's Customers
+
+Example:
+
+Retailer:
+Sayam Medical Store
+
+Customers:
+Rahul
+Amit
+Priya
+
+The retailer can maintain:
+
+Customer name
+Phone
+Email
+Address
+GST
+Why separate customers from retailers?
+
+Because there are two different business relationships.
+
+Wholesaler → Retailer
+
+is B2B.
+
+But:
+
+Retailer → Customer
+
+is the retailer's downstream business.
+
+The ERP therefore supports a chain:
+
+Wholesaler
+    ↓
+Retailer
+    ↓
+Customer
+PHASE 19 — Customer Invoices
+
+Retailer sells products to customers.
+
+Therefore retailer generates:
+
+Customer Invoice
+
+Example:
+
+Customer:
+Rahul
+
+Product:
+Hing
+
+Quantity:
+2
+
+Price:
+₹220
+
+Total:
+₹440
+
+This invoice is different from the wholesaler invoice.
+
+Two financial levels
+
+Your ERP eventually handles:
+
+Level 1
+Wholesaler → Retailer
+Level 2
+Retailer → Customer
+
+This is an important architectural feature.
+
+PHASE 20 — Customer Payments
+
+Customer may pay:
+
+Full amount
+
+or:
+
+Partial amount
+
+Example:
+
+Customer invoice = ₹5,000
+Paid = ₹2,000
+Outstanding = ₹3,000
+
+Customer payment records therefore need similar business logic to supplier/wholesaler payments.
+
+PHASE 21 — Shipping & Delivery Tracking
+
+After order processing:
+
+PROCESSING
+    ↓
+SHIPPED
+    ↓
+DELIVERED
+
+Shipping information can contain:
+
+Courier
+Tracking number
+Shipping date
+Expected delivery
+Delivered date
+Delivery status
+Why shipping should be separate from order?
+
+Because:
+
+Order = business transaction
+Shipping = logistics transaction
+
+One order may eventually have more complex delivery behavior.
+
+Keeping shipping separate improves maintainability.
+
+PHASE 22 — Dashboard & Reports
+
+Now the system becomes useful for management.
+
+Wholesaler dashboard might show:
+
+Total Retailers
+Total Products
+Total Stock
+Low Stock Items
+Expiring Items
+Pending Orders
+Waiting Orders
+Today's Sales
+Outstanding Amount
+
+Retailer dashboard:
+
+Connected Wholesalers
+Orders
+Current Stock
+Customers
+Customer Outstanding
+Sales
+Purchases
+Business reports
+
+Examples:
+
+Sales report
+Date
+Invoice
+Retailer
+Amount
+Payment
+Outstanding
+Stock report
+Product
+Quantity
+Value
+Expiry
+Outstanding report
+Retailer
+Total Debit
+Total Credit
+Outstanding
+
+This is where ORM aggregation becomes important:
+
+Sum
+Count
+Avg
+Aggregate
+Annotate
+PHASE 23 — Notifications
+
+The system can notify users about important events.
+
+Examples:
+
+Low stock
+Expiry approaching
+New order
+Order accepted
+Order rejected
+Order fulfilled
+Payment received
+Invoice generated
+Payment overdue
+Shipment delivered
+
+Initially notifications can be database-based.
+
+Later:
+
+Email
+SMS
+WhatsApp
+Push notification
+
+can be added.
+
+PHASE 24 — REST API with Django REST Framework
+
+Now your application becomes accessible beyond HTML pages.
+
+Instead of:
+
+Browser → Django Template
+
+we can have:
+
+Mobile App
+     │
+     ▼
+REST API
+     │
+     ▼
+Django
+What is an API?
+
+API means:
+
+Application Programming Interface.
+
+Example:
+
+GET /api/products/
+
+Response:
+
+[
+    {
+        "id": 1,
+        "name": "Hing",
+        "sku": "HING0001",
+        "quantity": 500
+    }
+]
+HTTP methods
+
+You should know these extremely well.
+
+GET
+
+Retrieve data.
+
+POST
+
+Create data.
+
+PUT
+
+Replace/update resource.
+
+PATCH
+
+Partially update.
+
+DELETE
+
+Delete.
+
+Example API architecture
+Frontend
+   ↓
+HTTP Request
+   ↓
+DRF
+   ↓
+Serializer
+   ↓
+ViewSet/APIView
+   ↓
+Service
+   ↓
+Model
+   ↓
+PostgreSQL
+PHASE 25 — Testing
+
+A professional project must be tested.
+
+You don't want to manually test everything every time.
+
+Important tests:
+
+User registration
+Login
+Product creation
+Unauthorized product access
+Order creation
+Order acceptance
+Stock transfer
+Waiting-for-stock
+Invoice generation
+Duplicate invoice prevention
+Payment
+Overpayment prevention
+Ledger calculation
+Customer invoice
+Permissions
+Example critical test
+
+Invoice:
+
+₹41,800
+
+Payment:
+
+₹50,000
+
+Expected:
+
+ValidationError
+
+This should be an automated test.
+
+Testing levels
+
+You will learn:
+
+Model tests
+
+Does the model behave correctly?
+
+Service tests
+
+Does business logic work?
+
+View tests
+
+Does the endpoint/page behave correctly?
+
+Integration tests
+
+Do multiple components work together?
+
+For example:
+
+Order
+ ↓
+Invoice
+ ↓
+Payment
+ ↓
+Ledger
+PHASE 26 — Security & Permissions
+
+This phase is extremely important for job interviews.
+
+You need to understand:
+
+CSRF
+
+Protects against forged state-changing requests.
+
+Django provides CSRF protection.
+
+XSS
+
+Cross-Site Scripting.
+
+Never blindly render user-controlled HTML.
+
+SQL Injection
+
+Don't construct SQL using unsafe string concatenation.
+
+Django ORM protects against many common SQL injection scenarios when used correctly.
+
+Password security
+
+Passwords should never be stored as plain text.
+
+Django hashes passwords.
+
+Authorization
+
+A user must only access their own business data.
+
+For example:
+
+Retailer A
+
+must not see:
+
+Retailer B's invoices.
+Security principle
+
+Never trust:
+
+URL ID
+POST data
+hidden input
+query parameter
+
+Just because the browser sends:
+
+invoice_id = 10
+
+doesn't mean the user owns invoice 10.
+
+Always verify ownership server-side.
+
+PHASE 27 — PostgreSQL & Database Optimization
+
+During development:
+
+SQLite
+
+is convenient.
+
+For production:
+
+PostgreSQL
+
+is much more suitable for this ERP.
+
+You will learn:
+
+Indexes
+Transactions
+Constraints
+Foreign Keys
+Query optimization
+Locks
+Isolation
+Why indexes?
+
+Suppose you have:
+
+5,000,000 orders
+
+and search:
+
+invoice_number
+
+Without appropriate indexing, database searches can become expensive.
+
+Indexes help databases find records efficiently.
+
+N+1 Query Problem
+
+Suppose:
+
+orders = Order.objects.all()
+
+and template accesses:
+
+order.retailer.shop_name
+
+for every order.
+
+You may accidentally produce:
+
+1 query for orders
++
+100 queries for retailers
+
+= 101 queries.
+
+Instead:
+
+select_related("retailer")
+
+can fetch related foreign-key data efficiently.
+
+select_related vs prefetch_related
+
+Very important interview question.
+
+select_related
+
+Generally used for:
+
+ForeignKey
+OneToOne
+
+It uses SQL joins.
+
+prefetch_related
+
+Used for:
+
+ManyToMany
+Reverse ForeignKey
+
+It performs separate queries and joins results in Python.
+
+PHASE 28 — Deployment
+
+Development:
+
+Windows
+Django
+SQLite
+runserver
+
+Production could become:
+
+Linux Server
+    │
+    ├── Nginx
+    │
+    ├── Gunicorn
+    │
+    ├── Django
+    │
+    └── PostgreSQL
+Request flow in production
+User Browser
+     ↓
+   HTTPS
+     ↓
+   Nginx
+     ↓
+ Gunicorn
+     ↓
+  Django
+     ↓
+PostgreSQL
+
+Nginx handles things such as:
+
+reverse proxy
+static files
+HTTPS termination
+
+Gunicorn runs Django application workers.
+
+Environment variables
+
+Sensitive configuration should not be committed to GitHub.
+
+For example:
+
+SECRET_KEY
+DATABASE_URL
+PASSWORD
+API_KEY
+
+Use:
+
+.env
+
+and exclude it:
+
+.env
+PHASE 29 — Docker
+
+Docker packages the application and its environment.
+
+Instead of saying:
+
+"It works on my computer."
+
+you can provide a reproducible environment.
+
+Architecture:
+
+Docker Compose
+│
+├── Django
+├── PostgreSQL
+├── Redis
+└── Celery
+Important Docker concepts
+
+You should understand:
+
+Image
+Container
+Dockerfile
+Volume
+Network
+Environment variables
+Docker Compose
+PHASE 30 — CI/CD
+
+CI/CD means automating:
+
+Code
+ ↓
+Push GitHub
+ ↓
+Run tests
+ ↓
+Build
+ ↓
+Deploy
+
+For example:
+
+git push
+   ↓
+GitHub Actions
+   ↓
+Install dependencies
+   ↓
+Run tests
+   ↓
+Build Docker image
+   ↓
+Deploy
+
+This is a strong job-ready skill.
+
+PHASE 31 — Professional Git Workflow
+
+Your GitHub repository should not look like:
+
+final
+final2
+final-final
+latest-final
+new-final
+
+Instead:
+
+main
+│
+├── feature/payment-management
+├── feature/customer-management
+├── feature/shipping
+└── fix/invoice-overpayment
+
+Typical workflow:
+
+git switch -c feature/customer-management
+
+# coding
+
+git status
+git add .
+git commit -m "feat: add customer management"
+
+git push -u origin feature/customer-management
+
+Then:
+
+Pull Request
+      ↓
+Code Review
+      ↓
+Tests
+      ↓
+Merge
+PHASE 32 — Final Documentation & Portfolio
+
+The project should finally have a professional README.
+
+It should explain:
+
+Project
+Django Wholesaler–Retailer ERP
+Features
+Authentication
+Product Management
+Inventory
+Orders
+Billing
+Payments
+Ledger
+Customers
+Shipping
+Reports
+REST API
+Tech Stack
+Python
+Django
+Django REST Framework
+PostgreSQL
+HTML
+CSS
+JavaScript
+Git
+Docker
+Redis
+Celery
+Architecture
+
+Explain:
+
+Browser
+ ↓
+Django
+ ↓
+Services
+ ↓
+Models
+ ↓
+PostgreSQL
+Installation
+git clone ...
+python -m venv venv
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver
+Screenshots
+
+Show:
+
+Login
+Dashboard
+Products
+Stock
+Orders
+Invoice
+Payment
+Ledger
+Reports
+Complete Business Flow
+
+Now put everything together.
+
+This is the single most important flow to understand.
+
+                    USER
+                     │
+             Registration/Login
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+      WHOLESALER             RETAILER
+          │                     │
+          │                     │
+     Create Products       Connect Wholesaler
+          │                     │
+     Manage Stock          Browse Products
+          │                     │
+          └──────────┬──────────┘
+                     │
+                Place Order
+                     │
+                  PENDING
+                     │
+             Wholesaler Review
+                /           \
+           REJECT             ACCEPT
+             │                  │
+         REJECTED          Check Stock
+                              /     \
+                       Enough       Not Enough
+                          │              │
+                    Fulfill Order   WAITING FOR STOCK
+                          │              │
+                          │        Stock Replenished
+                          │              │
+                          └───────┬──────┘
+                                  │
+                              PROCESSING
+                                  │
+                     ┌────────────┴────────────┐
+                     │                         │
+             Deduct Wholesaler          Add Retailer
+                  Stock                     Stock
+                     │
+                     ▼
+                  Invoice
+                     │
+                     ▼
+                  Payment
+                     │
+               ┌─────┴─────┐
+               │           │
+             Partial      Full
+               │           │
+               ▼           ▼
+        PARTIALLY_PAID    PAID
+               │
+               ▼
+             Ledger
+               │
+               ▼
+          Outstanding
+Financial Flow
+
+The financial side can be visualized separately:
+
+Order
+  ↓
+Invoice
+  ↓
+DEBIT
+  ↓
+Retailer owes money
+  ↓
+Payment
+  ↓
+CREDIT
+  ↓
+Outstanding decreases
+
+Mathematically:
+
+Outstanding
+=
+Σ Debit
+-
+Σ Credit
+Inventory Flow
+Wholesaler Stock
+      │
+      │ Fulfillment
+      ▼
+  Deduct Stock
+      │
+      ▼
+Retailer Stock
+
+Example:
+
+Wholesaler = 500
+Order = 220
+
+500 - 220 = 280
+
+Retailer:
+0 + 220 = 220
+Data Relationship Diagram
+
+A simplified database relationship looks like this:
+
+User
+ │
+ ├────────────── UserProfile
+ │
+ ├────────────── WholesalerProfile
+ │                       │
+ │                       │ M:N
+ │                       ▼
+ │                 RetailerProfile
+ │                       │
+ │                       ├── Orders
+ │                       ├── RetailerStock
+ │                       └── Customers
+ │
+ ▼
+
+Products:
+
+Wholesaler
+    │
+    ▼
+ Product
+    │
+    ▼
+ Stock
+
+Orders:
+
+Retailer ──────┐
+               │
+               ▼
+             Order
+               │
+               ▼
+           OrderItem
+               │
+               ▼
+            Product
+
+Billing:
+
+Order
+ │
+ ▼
+Invoice
+ │
+ ▼
+InvoiceItem
+ │
+ ▼
+Product
+
+Payments:
+
+Invoice
+   │
+   ▼
+Payment
+
+Ledger:
+
+Invoice ──────► LedgerEntry(DEBIT)
+
+Payment ──────► LedgerEntry(CREDIT)
+
+Shipping:
+
+Order
+ │
+ ▼
+Shipment
+The most important design principles in your project
+
+Your project is not valuable merely because it contains many pages.
+
+Its real value comes from the engineering concepts behind it.
+
+1. Separation of concerns
+Models → data
+Forms → input validation
+Views → request/response
+Services → business logic
+Templates → presentation
+2. Object-level authorization
+
+Every sensitive query should consider:
+
+Who owns this object?
+3. Transactions
+
+Financial/inventory operations should be atomic.
+
+Either everything succeeds
+or everything rolls back.
+4. Historical data
+
+Orders and invoices should preserve historical values.
+
+Don't blindly use today's product price for yesterday's invoice.
+
+5. Database integrity
+
+Use:
+
+ForeignKey
+OneToOneField
+ManyToManyField
+UniqueConstraint
+PROTECT
+CASCADE
+
+appropriately.
+
+6. Financial precision
+
+Use:
+
+DecimalField
+
+rather than floating-point numbers for money.
+
+7. Query optimization
+
+Understand:
+
+select_related
+prefetch_related
+F
+Q
+aggregate
+annotate
+indexes
+8. Security
+
+Never assume:
+
+"Because the user sent the ID, they are allowed to access it."
+
+Authorization must be checked on the server.
+
+What this project demonstrates to an interviewer
+
+If implemented completely, this project demonstrates much more than:
+
+"I know Django CRUD."
+
+It demonstrates knowledge of:
+
+Python
+   ↓
+Django
+   ↓
+ORM
+   ↓
+Relational Database Design
+   ↓
+Authentication
+   ↓
+Authorization
+   ↓
+Business Logic
+   ↓
+Transactions
+   ↓
+Inventory Management
+   ↓
+Order Processing
+   ↓
+Financial Systems
+   ↓
+Payments
+   ↓
+Ledger
+   ↓
+REST APIs
+   ↓
+Testing
+   ↓
+Security
+   ↓
+PostgreSQL
+   ↓
+Docker
+   ↓
+CI/CD
+   ↓
+Deployment
+
+That is why this is a strong project for your job preparation.
+
+The complete phase roadmap
+Phase	Feature	Main Concepts
+1	Project Setup	Django architecture
+2	Authentication	Auth, profiles, roles
+3	Wholesaler-Retailer	M2M relationships
+4	Products	Models, FK
+5	Stock	Inventory
+6	Low Stock	F() queries
+7	Expiry	Date logic
+8	Search/Filters	Q(), ORM
+9	Order Creation	Transactions
+10	Retailer Orders	Authorization
+11	Wholesaler Orders	Workflow
+12	Stock Transfer	Inventory consistency
+13	Waiting Stock	State management
+14	Fulfillment	Transactions/concurrency
+15	Billing	Financial modeling
+16	Payments	Validation/transactions
+17	Ledger	Accounting concepts
+18	Customers	CRM
+19	Customer Invoices	Retail billing
+20	Customer Payments	Receivables
+21	Shipping	Logistics
+22	Dashboard/Reports	Aggregation
+23	Notifications	Events
+24	REST API	DRF
+25	Testing	Automated QA

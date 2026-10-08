@@ -1,59 +1,167 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Retailer Dashboard</title>
-</head>
+{% block title %}Retailer Dashboard{% endblock %}
 
-<body>
+{% block content %}
 
-    <h1>Retailer Dashboard</h1>
-
-    <h2>
-        Welcome, {{ retailer.shop_name }}
-    </h2>
-
-    <p>
-        Owner: {{ retailer.owner_name }}
-    </p>
-
-    <p>
-        Phone: {{ retailer.phone }}
-    </p>
-
-    <p>
-        City: {{ retailer.city }}
-    </p>
-
-    <p>
-        GST: {{ retailer.gst_number }}
-    </p>
-
-    <hr>
-
-    <h3>Retailer Features</h3>
-
-    <ul>
-
-
-    <a href="{% url 'wholesaler_list' %}">
-        My Wholesalers
+<!-- Greeting Header -->
+<div class="page-header" style="margin-bottom: 20px;">
+  <div class="page-header-left">
+    <p class="text-muted" style="font-size:13px; margin-bottom:4px;">Good day 👋</p>
+    <h1 class="page-title">{{ retailer.shop_name }}</h1>
+    <p class="page-subtitle">Owner: {{ retailer.owner_name }} &nbsp;·&nbsp; {{ retailer.city }}, {{ retailer.state }} &nbsp;·&nbsp; GST: {{ retailer.gst_number|default:"Not set" }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'wholesaler_list' %}" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Browse Wholesalers
     </a>
+  </div>
+</div>
 
-    <br><br>
+<!-- Quick Actions -->
+<div class="quick-actions">
+  <a href="{% url 'wholesaler_list' %}" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+    Order Products
+  </a>
+  <a href="{% url 'retailer_orders' %}" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    My Orders
+  </a>
+  <a href="{% url 'customer_list' %}" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Customers
+  </a>
+  <a href="{% url 'invoice_list' %}" class="quick-action-btn">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Supplier Invoices
+  </a>
+</div>
 
-    <a href="{% url 'my_orders' %}">
-        My Orders
-    </a>
+<!-- Stat Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Total Purchase Orders</div>
+      <div class="stat-value">{{ total_orders|default:"0" }}</div>
+      <div class="stat-sub">All time orders</div>
+    </div>
+  </div>
 
-    <br><br>
+  <div class="stat-card">
+    <div class="stat-icon amber">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="10"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Pending Orders</div>
+      <div class="stat-value">{{ pending_orders_count|default:"0" }}</div>
+      <div class="stat-sub">Awaiting wholesaler approval</div>
+    </div>
+  </div>
 
-    </ul>
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Total Paid</div>
+      <div class="stat-value">₹{{ total_spent|default:"0" }}</div>
+      <div class="stat-sub">Supplier payments settled</div>
+    </div>
+  </div>
 
-    <a href="{% url 'logout' %}">
-        Logout
-    </a>
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-label">Unpaid Balance</div>
+      <div class="stat-value">₹{{ total_unpaid|default:"0" }}</div>
+      <div class="stat-sub">Due to suppliers</div>
+    </div>
+  </div>
+</div>
 
-</body>
+<!-- Recent Activity Grid -->
+<div class="grid-2" style="margin-top: 24px;">
+  <!-- Recent Orders -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">My Recent Purchase Orders</span>
+      <a href="{% url 'retailer_orders' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Wholesaler</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr class="table-row-link" data-href="{% url 'order_detail' order.id %}">
+            <td class="text-bold">#{{ order.id }}</td>
+            <td>{{ order.wholesaler.business_name }}</td>
+            <td>
+              {% if order.status == 'PENDING' %}<span class="badge badge-amber">Pending</span>
+              {% elif order.status == 'ACCEPTED' %}<span class="badge badge-blue">Accepted</span>
+              {% elif order.status == 'DELIVERED' %}<span class="badge badge-green">Delivered</span>
+              {% elif order.status == 'REJECTED' %}<span class="badge badge-red">Rejected</span>
+              {% else %}<span class="badge badge-gray">{{ order.status }}</span>{% endif %}
+            </td>
+            <td class="text-muted">{{ order.order_date|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted" style="padding:32px;">No purchase orders yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-</html>
+  <!-- Recent Supplier Invoices -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Recent Supplier Invoices</span>
+      <a href="{% url 'invoice_list' %}" class="btn btn-ghost btn-sm">View all</a>
+    </div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Wholesaler</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for invoice in recent_invoices %}
+          <tr class="table-row-link" data-href="{% url 'invoice_detail' invoice.id %}">
+            <td class="text-bold">{{ invoice.invoice_number }}</td>
+            <td>{{ invoice.wholesaler.business_name }}</td>
+            <td>₹{{ invoice.grand_total }}</td>
+            <td>
+              {% if invoice.status == 'PAID' %}<span class="badge badge-green">Paid</span>
+              {% elif invoice.status == 'PARTIALLY_PAID' %}<span class="badge badge-amber">Partial</span>
+              {% elif invoice.status == 'UNPAID' %}<span class="badge badge-red">Unpaid</span>
+              {% else %}<span class="badge badge-gray">{{ invoice.status }}</span>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center text-muted" style="padding:32px;">No recent invoices</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

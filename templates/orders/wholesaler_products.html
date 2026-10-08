@@ -1,86 +1,59 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Wholesaler Products</title>
-</head>
+{% block title %}{{ wholesaler.business_name }} Products{% endblock %}
 
-<body>
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="breadcrumb">
+      <a href="{% url 'wholesaler_list' %}">Wholesalers</a>
+      <span>/</span>
+      <span class="current">{{ wholesaler.business_name }}</span>
+    </div>
+    <h1 class="page-title">{{ wholesaler.business_name }}</h1>
+    <p class="page-subtitle">Browse catalog items available for order.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'wholesaler_list' %}" class="btn btn-secondary">Back to Wholesalers</a>
+  </div>
+</div>
 
-<h1>{{ wholesaler.business_name }}</h1>
-
-<h2>Available Products</h2>
-
-{% if products %}
-
-<table border="1" cellpadding="10">
-
-    <thead>
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Available Products</span>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Product</th>
-            <th>SKU</th>
-            <th>Category</th>
-            <th>Unit</th>
-            <th>Action</th>
+          <th>Product Name</th>
+          <th>SKU</th>
+          <th>Category</th>
+          <th>Unit</th>
+          <th>Action</th>
         </tr>
-    </thead>
-
-    <tbody>
-
+      </thead>
+      <tbody>
         {% for product in products %}
-
         <tr>
-
-            <td>
-                {{ product.name }}
-            </td>
-
-            <td>
-                {{ product.sku }}
-            </td>
-
-            <td>
-                {{ product.category }}
-            </td>
-
-            <td>
-                {{ product.unit }}
-            </td>
-
-            <td>
-                <a href="{% url 'create_order' wholesaler.id product.id %}">
-                    Add to Order
-                </a>
-            </td>
-
+          <td class="text-bold">{{ product.name }}</td>
+          <td><code>{{ product.sku }}</code></td>
+          <td><span class="badge badge-blue">{{ product.category|default:"General" }}</span></td>
+          <td>{{ product.unit|default:"Pcs" }}</td>
+          <td>
+            <a href="{% url 'create_order' wholesaler.id product.id %}" class="btn btn-primary btn-sm">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add to Order
+            </a>
+          </td>
         </tr>
-
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted" style="padding: 32px;">This wholesaler currently has no products listed.</td>
+        </tr>
         {% endfor %}
-
-    </tbody>
-
-</table>
-
-{% else %}
-
-<p>
-    This wholesaler currently has no products.
-</p>
-
-{% endif %}
-
-<br>
-
-<a href="{% url 'wholesaler_list' %}">
-    Back to Wholesalers
-</a>
-
-<br><br>
-
-<a href="{% url 'dashboard' %}">
-    Back to Dashboard
-</a>
-
-</body>
-
-</html>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
