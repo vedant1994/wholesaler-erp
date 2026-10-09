@@ -37,4 +37,15 @@ urlpatterns = [
         views.customer_invoices_view,
         name="customer_invoices"
     ),
-]
+    path(
+        "customer/create/",
+        views.create_customer_invoice,
+        name="create_customer_invoice"
+    ),
+    path(
+        "customer/<int:invoice_id>/",
+        views.customer_invoice_detail,
+        name="customer_invoice_detail"
+    ),
+]
+

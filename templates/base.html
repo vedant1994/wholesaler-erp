@@ -32,16 +32,16 @@
 
   <!-- ===== SIDEBAR ===== -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
+    <a href="{% url 'dashboard' %}" class="sidebar-logo" style="text-decoration: none;">
       <div class="logo-icon">E</div>
       <span class="logo-text">WholesaleERP</span>
-    </div>
+    </a>
 
     <nav class="sidebar-nav">
 
       {% if request.user.is_authenticated %}
 
-        {% if user_role == 'WHOLESALER' %}
+        {% if user_role == 'WHOLESALER' or request.user.wholesaler_profile %}
           <!-- WHOLESALER NAV -->
           <span class="nav-section-label">Overview</span>
 
@@ -125,7 +125,7 @@
           </a>
 
 
-        {% elif user_role == 'RETAILER' %}
+        {% elif user_role == 'RETAILER' or request.user.retailer_profile %}
           <!-- RETAILER NAV -->
           <span class="nav-section-label">Overview</span>
 
@@ -226,11 +226,35 @@
 
     <!-- Top Bar -->
     <header class="topbar">
-      <button class="topbar-icon-btn" id="mobileMenuBtn" aria-label="Open menu">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
+      <!-- Daily Needed / Frequently Accessed Quick Action Buttons -->
+      <div class="topbar-quick-actions" style="display: flex; align-items: center; gap: 8px;">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px; display: flex; align-items: center; gap: 4px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Dashboard
+        </a>
+        {% if request.user.retailer_profile or user_role == 'RETAILER' %}
+          <a href="{% url 'create_customer_invoice' %}" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; font-weight: 600; padding: 5px 12px; gap: 6px; font-size: 12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            ⚡ Create Bill (POS)
+          </a>
+          <a href="{% url 'retailer_orders' %}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px;">
+            🛒 Orders
+          </a>
+          <a href="{% url 'customer_invoices' %}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px;">
+            📄 Sales Bills
+          </a>
+        {% elif request.user.wholesaler_profile or user_role == 'WHOLESALER' %}
+          <a href="{% url 'product_list' %}" class="btn btn-primary btn-sm" style="font-size: 12px; padding: 5px 10px;">
+            + Add Product
+          </a>
+          <a href="{% url 'wholesaler_orders' %}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px;">
+            📋 Orders
+          </a>
+          <a href="{% url 'invoice_list' %}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 5px 10px;">
+            📄 Billing
+          </a>
+        {% endif %}
+      </div>
 
       <div class="topbar-search">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

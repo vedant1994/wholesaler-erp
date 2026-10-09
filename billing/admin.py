@@ -45,23 +45,23 @@ class InvoiceItemAdmin(admin.ModelAdmin):
 class CustomerInvoiceAdmin(admin.ModelAdmin):
     list_display = (
         "invoice_number",
-        "customer",
+        "customer_name",
         "retailer",
         "invoice_date",
         "grand_total",
         "status",
     )
     list_filter = ("status", "invoice_date",)
-    search_fields = ("invoice_number", "customer__name", "retailer__shop_name",)
+    search_fields = ("invoice_number", "customer_name", "customer_phone", "retailer__shop_name",)
 
 @admin.register(CustomerInvoiceItem)
 class CustomerInvoiceItemAdmin(admin.ModelAdmin):
     list_display = (
         "invoice",
-        "product",
+        "product_name",
         "quantity",
-        "price_per_unit",
-        "tax_rate",
-        "tax_amount",
-        "total_price",
-    )
+        "unit_price",
+        "discount",
+        "amount",
+    )
+

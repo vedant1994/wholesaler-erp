@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Billing (POS Cash Bills){% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-title">Sales Billing History</h1>
+    <p class="page-subtitle">Walk-in customer retail sale bills & Tax Invoices.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'create_customer_invoice' %}" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Create New Bill (POS)
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Customer Name</th>
+          <th>Phone</th>
+          <th>Grand Total</th>
+          <th>Payment Method</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr class="table-row-link" data-href="{% url 'customer_invoice_detail' invoice.id %}">
+          <td class="text-bold">{{ invoice.invoice_number }}</td>
+          <td class="text-bold">{{ invoice.customer_name }}</td>
+          <td>{{ invoice.customer_phone|default:"—" }}</td>
+          <td class="text-bold" style="color: #2563eb;">₹{{ invoice.grand_total }}</td>
+          <td><span class="badge badge-green">{{ invoice.get_payment_method_display }}</span></td>
+          <td class="text-muted">{{ invoice.invoice_date|date:"d M Y, h:i A" }}</td>
+          <td>
+            <a href="{% url 'customer_invoice_detail' invoice.id %}" class="btn btn-ghost btn-sm">View / Print Bill</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted" style="padding: 32px;">No sales cash bills generated yet. Click "Create New Bill (POS)" to issue your first bill.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

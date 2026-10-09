@@ -2,8 +2,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .models import (UserProfile, WholesalerProfile, RetailerProfile)
 from .forms import (RegistrationForm, WholesalerProfileForm, RetailerProfileForm)
+from django.db.models import F, Sum
+from datetime import date, timedelta
+from products.models import Product, Stock
+from orders.models import Order
+from billing.models import Invoice
+from payments.models import Payment, LedgerEntry
+from .models import UserProfile, WholesalerProfile, RetailerProfile, Notification
+
+from decimal import Decimal
 
 # Create your views here.
 
@@ -112,13 +120,6 @@ def user_logout(request):
 
     return redirect("login")
 
-from django.db.models import F, Sum
-from datetime import date, timedelta
-from products.models import Product, Stock
-from orders.models import Order
-from billing.models import Invoice
-from payments.models import Payment, LedgerEntry
-from .models import UserProfile, WholesalerProfile, RetailerProfile, Notification
 
 @login_required
 def dashboard(request):
@@ -151,12 +152,17 @@ def dashboard(request):
         ).count()
         total_retailers = wholesaler.retailers.count()
 
-        # Calculate total outstanding across all invoices
-        invoices = Invoice.objects.filter(wholesaler=wholesaler, status__in=["UNPAID", "PARTIALLY_PAID"])
-        total_outstanding = sum(
-            inv.grand_total - sum(p.amount for p in inv.payments.all())
-            for inv in invoices
-        )
+        # Calculate total outstanding across all invoices (deducting payments)
+        invoices = Invoice.objects.filter(wholesaler=wholesaler, status__in=["UNPAID", "PARTIALLY_PAID"]).prefetch_related("payments")
+        total_outstanding = Decimal("0.00")
+        for inv in invoices:
+            total_paid_for_inv = sum((p.amount for p in inv.payments.all()), Decimal("0.00"))
+            outstanding_for_inv = inv.grand_total - total_paid_for_inv
+            if outstanding_for_inv > Decimal("0.00"):
+                total_outstanding += outstanding_for_inv
+            else:
+                inv.status = "PAID"
+                inv.save(update_fields=["status"])
 
         recent_orders = (
             Order.objects.filter(wholesaler=wholesaler)
@@ -199,15 +205,27 @@ def dashboard(request):
             .select_related("wholesaler")
             .order_by("-invoice_date")[:5]
         )
-        total_spent = (
-            Invoice.objects.filter(retailer=retailer, status="PAID")
-            .aggregate(total=Sum("grand_total"))["total"] or 0
-        )
-        total_unpaid = (
-            Invoice.objects.filter(retailer=retailer, status__in=["UNPAID", "PARTIALLY_PAID"])
-            .aggregate(total=Sum("grand_total"))["total"] or 0
-        )
-        connected_wholesalers_count = wholesaler_count = retailer.wholesalers.count()
+
+        # Real-time total spent (sum of all payments made to suppliers)
+        total_spent = Payment.objects.filter(invoice__retailer=retailer).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+        # Real-time actual unpaid balance across all supplier invoices
+        unpaid_invoices = Invoice.objects.filter(
+            retailer=retailer,
+            status__in=["UNPAID", "PARTIALLY_PAID"]
+        ).prefetch_related("payments")
+
+        total_unpaid = Decimal("0.00")
+        for inv in unpaid_invoices:
+            total_paid_for_inv = sum((p.amount for p in inv.payments.all()), Decimal("0.00"))
+            outstanding_for_inv = inv.grand_total - total_paid_for_inv
+            if outstanding_for_inv > Decimal("0.00"):
+                total_unpaid += outstanding_for_inv
+            else:
+                inv.status = "PAID"
+                inv.save(update_fields=["status"])
+
+        connected_wholesalers_count = retailer.wholesalers.count()
 
         context = {
             "retailer": retailer,
@@ -277,4 +295,4 @@ def reports_view(request):
         context = {}
 
     return render(request, "reports/reports.html", context)
-
+

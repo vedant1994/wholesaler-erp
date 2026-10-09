@@ -4,6 +4,7 @@ from .views import (
     add_stock, stock_list, edit_stock, delete_stock, low_stock_list, expiry_list,
     retailer_stock_list
 )
+# from .api_views import product_list_api
 
 urlpatterns = [
     path("add/", add_product, name="add_product"),
@@ -17,4 +18,7 @@ urlpatterns = [
     path("stock/low/", low_stock_list, name="low_stock_list"),
     path("stock/expiry/", expiry_list, name="expiry_list"),
     path("", product_list, name="product_list"),
-]
+
+    #API Urls
+    # path("products/", product_list_api, name="api_product_list",),
+]
